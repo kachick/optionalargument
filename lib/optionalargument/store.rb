@@ -27,7 +27,7 @@ module OptionalArgument
         shortage_keys = @must_autonyms - recieved_autonyms
 
         unless shortage_keys.empty?
-          raise TypeError,
+          raise MalformedOptionsError,
             "shortage option parameter: #{shortage_keys.join(', ')}" 
         end
 
@@ -141,7 +141,7 @@ module OptionalArgument
 
     # @param [Symbol, String, #to_sym] name
     def [](name)
-      @hash.fetch self.class.autonym_for_name(name)
+      __send__ self.class.autonym_for_name(name)
     end
 
     # @return [String]
