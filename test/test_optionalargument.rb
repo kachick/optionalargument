@@ -85,6 +85,10 @@ class Test_OptionalArgument < Test::Unit::TestCase
       ret.a1
     end
 
+    assert_raises KeyError do
+      ret[:a1]
+    end
+
     assert_raises NoMethodError do
       ret.x
     end
