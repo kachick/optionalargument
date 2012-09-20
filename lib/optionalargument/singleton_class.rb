@@ -10,6 +10,7 @@ module OptionalArgument
       Class.new Store do
         @names = {}          # autonym/alias => autonym
         @must_autonyms = []
+        @conflict_autonyms = []
         class_eval(&block)
       end   
     end

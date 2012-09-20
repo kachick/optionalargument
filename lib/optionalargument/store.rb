@@ -22,12 +22,20 @@ module OptionalArgument
           hash[autonym] = value
         end
 
-        shortage_keys = \
-          @must_autonyms - hash.keys.map{|key|autonym_for_name key}
+        recieved_autonyms = hash.keys.map{|key|autonym_for_name key}
+
+        shortage_keys = @must_autonyms - recieved_autonyms
 
         unless shortage_keys.empty?
           raise TypeError,
             "shortage option parameter: #{shortage_keys.join(', ')}" 
+        end
+
+        if conflict = @conflict_autonyms.find{|con|
+            (con - recieved_autonyms).empty?
+          }
+          raise KeyConflictError,
+            "conflict conbination thrown: #{conflict.join(', ')}"
         end
 
         new hash
@@ -39,6 +47,11 @@ module OptionalArgument
       # @return [Symbol] autonym
       def autonym_for_name(name)
         @names.fetch name.to_sym
+      end
+
+      # @return [Array<Symbol>]
+      def autonyms
+        @names.values
       end
 
       private
@@ -99,6 +112,25 @@ module OptionalArgument
 
       alias_method :opt, :add_option
       alias_method :on, :add_option
+
+      # @param [Symbol, String, #to_sym] autonym1
+      # @param [Symbol, String, #to_sym] autonym2
+      # @param [Symbol, String, #to_sym] autonyms
+      # @return [nil]
+      def add_conflict(autonym1, autonym2, *autonyms)
+        autonyms = [autonym1, autonym2, *autonyms].map(&:to_sym)
+        raise ArgumentError unless autonyms == autonyms.uniq
+        not_autonyms = (autonyms - @names.values)
+        unless not_autonyms.empty?
+          raise ArgumentError, "contain not autonym: #{not_autonyms.join(', ')}"
+        end
+        raise if @conflict_autonyms.include? autonyms
+        
+        @conflict_autonyms << autonyms
+        nil
+      end
+
+      alias_method :conflict, :add_conflict
 
     end
 
