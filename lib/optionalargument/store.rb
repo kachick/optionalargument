@@ -67,6 +67,9 @@ module OptionalArgument
 
       # @param [Symbol, String, #to_sym] autonym
       # @param [Hash] options
+      # @option options [Boolean] :must
+      # @option options :default
+      # @option options [Array<Symbol>] :aliases
       # @return [nil]
       def add_option(autonym, options={})
         autonym = autonym.to_sym
