@@ -13,9 +13,12 @@ module OptionalArgument
   
         options.each_pair do |key, value|
           key = key.to_sym
-          raise UndefinedNameError, key unless @names.has_key? key
+          unless @names.has_key? key
+            raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
+          end
           raise KeyConflictError, key if hash.has_key? key
           autonym = autonym_for_name key
+
           hash[autonym] = value
         end
 
@@ -40,36 +43,36 @@ module OptionalArgument
 
       private
 
-      DEFAULT_ON_OPTIONS = {
-        must: false,
-        aliases: []
+      DEFAULT_ADD_OPT_OPTIONS = {
+        must:    false,
+        aliases: [].freeze
       }.freeze
+
+      if respond_to? :private_constant
+        private_constant :DEFAULT_ADD_OPT_OPTIONS
+      end
 
       # @param [Symbol, String, #to_sym] autonym
       # @param [Hash] options
       # @return [nil]
-      def opt(autonym, options={})
+      def add_option(autonym, options={})
         autonym = autonym.to_sym
-        options = DEFAULT_ON_OPTIONS.merge(options).extend(KeyValidatable)
+        options = DEFAULT_ADD_OPT_OPTIONS.merge(options).extend KeyValidatable
         options.validate_keys must: [:must, :aliases], let: [:default]
 
-        aliases = options[:aliases].map(&:to_sym)
-        names = [autonym, *aliases]
-  
         if options[:must]
-          if options.has_key?(:default)
-            raise ArgumentError, 'conflict "must" with "default"'
+          if options.has_key? :default
+            raise KeyConflictError, '"must" conflic "default"'
           end
 
           @must_autonyms << autonym
         end
 
-        names.each do |name|
+        [autonym, *options[:aliases].map(&:to_sym)].each do |name|
           raise KeyError if @names.has_key? name
-          @names[name] = autonym
-        end
 
-        names.each do |name|
+          @names[name] = autonym
+
           define_method name do
             if options.has_key? :default
               @hash.has_key?(autonym) ? @hash[autonym] : options[:default]
@@ -78,7 +81,8 @@ module OptionalArgument
             end
           end
 
-          predicate = "with_#{name}?".to_sym
+          predicate = :"with_#{name}?"
+
           define_method predicate do
             if options.has_key? :default
               true
@@ -87,11 +91,14 @@ module OptionalArgument
             end
           end
 
-          alias_method "#{name}?".to_sym, predicate
-
-          nil
+          alias_method :"#{name}?", predicate
         end
+
+        nil
       end
+
+      alias_method :opt, :add_option
+      alias_method :on, :add_option
 
     end
 
