@@ -123,6 +123,8 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
     opt :with_adj, adjuster: ->arg{arg.to_sym}
     opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
                         adjuster: ->arg{arg.to_sym}
+    opt :with_cond_default, condition: AND(/\AFOO\z/, Symbol)
+                            default: 'FOO'
   }
 
   def test_to_strings
@@ -178,6 +180,20 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
 
     assert_raises Validation::InvalidWritingError do
       OARG.parse with_cond_adj: 'foo'
+    end
+  end
+
+  def test_with_cond_default
+    oarg = OARG.parse with_cond_default: 'FOO'
+    assert_not_equal 'FOO', oarg.fetch_by_with_cond_default
+    assert_same :FOO, oarg.fetch_by_with_cond_default
+
+    assert_raises Validation::InvalidAdjustingError do
+      OARG.parse with_cond_default: Object.new
+    end
+
+    assert_raises Validation::InvalidWritingError do
+      OARG.parse with_cond_default: 'foo'
     end
   end
 
