@@ -209,5 +209,4 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
     assert_same :FOO, oarg.fetch_by_with_cond_adj_default
   end
 
-
 end

@@ -1,10 +1,8 @@
-require 'forwardable'
 require 'keyvalidatable'
 require 'validation'
 
 module OptionalArgument; class Store
 
-  extend Forwardable
   extend Validation::Condition
   extend Validation::Adjustment
 
@@ -197,9 +195,12 @@ module OptionalArgument; class Store
           raise Validation::InvalidAdjustingError, $!
         end
       end
+
+      condition = @conditions.fetch(autonym)
       
-      unless _valid? @conditions.fetch(autonym), value
-        raise Validation::InvalidWritingError
+      unless _valid? condition, value
+        raise Validation::InvalidWritingError,
+          "#{value.inspect} is deficient for #{condition}"
       end
 
       value

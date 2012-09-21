@@ -4,19 +4,19 @@ optionalargument
 Description
 -----------
 
-"like keyword arguments"++
+Flexible define and parse keyword like arguments too easy.
 
 Features
 --------
 
-* Definition so flexible.
-* Can easy use the parsed object.
+* Definition so flexible and strict parse the key-value options.
+* Parsed objects can use as struct like API.
 * Pure Ruby :)
 
 Usage
 -----
 
-### Overview
+### What keys do you want? Declare it.
 
 ```ruby
 require 'optionalargument'
@@ -55,16 +55,35 @@ foo.func(a: 1, c: 3, e: 5)  #=> Error: conflict conbination thrown: a, e
 opts = foo.func(c: 3,
                 e: 5,
                 d2: 4) 
-p opts                      #=> #<Foo::FUNC_OPTIONS: c=3, e=5, d=4>
+p opts                      #=> #<Foo::FUNC_OPTIONS: c=3, e=5, d=4, b=":)">
 p opts.d3?                  #=> true
 p opts.d3                   #=> 4
 ```
+
+### What value do you want? Declare It.
+
+```ruby
+OPTARG = OptionalArgument.define do
+  opt :x, condition: 3..5
+  opt :y, condition: AND(Float, 3..5)
+  opt :z, adjuster: ->arg{Float arg}
+end
+
+OPTARG.parse x: 5            #=> pass : 5 is sufficient for 3..5
+OPTARG.parse x: 6            #=> error: 6 is deficient for 3..5 
+OPTARG.parse y: 5            #=> error: 5 is deficient for Float
+OPTARG.parse y: 5.0          #=> pass : 5.0 is sufficient for 3..5 and Float
+OPTARG.parse(z: '1').z       #=> 1.0  : casted under adjuster
+```
+
+* It can mix these options.
 
 Requirements
 -------------
 
 * Ruby - [1.9.2 or later](http://travis-ci.org/#!/kachick/optionalargument)
-* [keyvalidatable - 0.0.3](https://github.com/kachick/keyvalidatable)
+* keyvalidatable - [0.0.3](https://github.com/kachick/keyvalidatable)
+* validation - [0.0.3](https://github.com/kachick/validation)
 
 Install
 -------
