@@ -186,6 +186,7 @@ module OptionalArgument; class Store
     end
 
     # @param [Symbol] autonym - !MUST! already converted native autonym
+    # @return [value]
     def _validate_argument(autonym, value)
       if @adjusters.has_key? autonym
         adjuster = @adjusters.fetch autonym

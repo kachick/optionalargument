@@ -76,7 +76,7 @@ OPTARG.parse y: 5.0          #=> pass : 5.0 is sufficient for 3..5 and Float
 OPTARG.parse(z: '1').z       #=> 1.0  : casted under adjuster
 ```
 
-* It can mix these options.
+Of course, you can mix these options :)
 
 Requirements
 -------------
