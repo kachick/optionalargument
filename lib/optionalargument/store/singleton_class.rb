@@ -50,7 +50,7 @@ module OptionalArgument; class Store
         if @default_values.has_key? unsetted_autonym
           hash[unsetted_autonym] = \
             _validate_argument unsetted_autonym,
-                               @default_values[unsetted_autonym]
+                               @default_values.fetch(unsetted_autonym)
         end
       end
       

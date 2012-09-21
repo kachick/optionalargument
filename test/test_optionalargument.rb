@@ -123,8 +123,6 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
     opt :with_adj, adjuster: ->arg{arg.to_sym}
     opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
                         adjuster: ->arg{arg.to_sym}
-    opt :with_cond_default, condition: AND(/\AFOO\z/, Symbol)
-                            default: 'FOO'
   }
 
   def test_to_strings
@@ -183,18 +181,33 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
     end
   end
 
+  OARG2 = OptionalArgument.define {
+    opt :with_cond_default, condition: AND(/\AFOO\z/, Symbol),
+                            default: 'FOO'
+  }
+
   def test_with_cond_default
-    oarg = OARG.parse with_cond_default: 'FOO'
+    assert_raises Validation::InvalidWritingError do
+      OARG2.parse({})
+    end
+
+    oarg = OARG2.parse with_cond_default: :FOO
     assert_not_equal 'FOO', oarg.fetch_by_with_cond_default
     assert_same :FOO, oarg.fetch_by_with_cond_default
-
-    assert_raises Validation::InvalidAdjustingError do
-      OARG.parse with_cond_default: Object.new
-    end
-
-    assert_raises Validation::InvalidWritingError do
-      OARG.parse with_cond_default: 'foo'
-    end
   end
+
+
+  OARG3 = OptionalArgument.define {
+    opt :with_cond_adj_default, condition: AND(/\AFOO\z/, Symbol),
+                                default: 'FOO',
+                                adjuster: ->arg{arg.to_sym}
+  }
+
+  def test_with_cond_adj_default
+    oarg = OARG3.parse({})
+    assert_not_equal 'FOO', oarg.fetch_by_with_cond_adj_default
+    assert_same :FOO, oarg.fetch_by_with_cond_adj_default
+  end
+
 
 end
