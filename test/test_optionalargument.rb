@@ -1,6 +1,6 @@
 require_relative 'helper'
 
-class Test_OptionalArgument < Test::Unit::TestCase
+class Test_OptionalArgument_README < Test::Unit::TestCase
 
   class Foo
 
@@ -107,6 +107,77 @@ class Test_OptionalArgument < Test::Unit::TestCase
 
     assert_raises OptionalArgument::KeyConflictError do
       foo.func2 a: true, c2: true, b: true
+    end
+  end
+
+end
+
+
+
+class Test_OptionalArgument_API < Test::Unit::TestCase
+
+  OARG = OptionalArgument.define {
+    opt :a
+    opt 'included space :)'
+    opt :with_cond, condition: AND(/\AFOO\z/, Symbol)
+    opt :with_adj, adjuster: ->arg{arg.to_sym}
+    opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
+                        adjuster: ->arg{arg.to_sym}
+  }
+
+  def test_to_strings
+    oarg = OARG.parse a: 'A'
+    assert_instance_of String, oarg.inspect
+    assert_equal oarg.inspect, oarg.to_s
+    assert_not_same oarg.inspect, oarg.to_s
+    assert_not_same oarg.to_s, oarg.to_s
+    assert oarg.to_s.include?('_API::OARG: a="A">')
+  end
+
+  def test_strange_key
+    oarg = OARG.parse :'included space :)' => 123
+    assert oarg.public_methods.include?(:'included space :)')
+    assert_same 123, oarg[:'included space :)']
+    assert_same 123, oarg.public_send(:'included space :)')
+  end
+
+  def test_with_cond
+    oarg = OARG.parse with_cond: :FOO
+    assert_same :FOO, oarg.fetch_by_with_cond
+    assert_same :FOO, oarg.with_cond
+    assert_same true, oarg.with_with_cond?
+    assert_same true, oarg.with_cond?
+
+    assert_raises Validation::InvalidWritingError do
+      OARG.parse with_cond: 'FOO'
+    end
+
+    assert_raises Validation::InvalidWritingError do
+      OARG.parse with_cond: :BAR
+    end
+  end
+
+  def test_with_adj
+    oarg = OARG.parse with_adj: 'foo'
+    assert_not_equal 'foo', oarg.fetch_by_with_adj
+    assert_same :foo, oarg.fetch_by_with_adj
+
+    assert_raises Validation::InvalidAdjustingError do
+      OARG.parse with_adj: Object.new
+    end
+  end
+
+  def test_with_cond_adj
+    oarg = OARG.parse with_cond_adj: 'FOO'
+    assert_not_equal 'FOO', oarg.fetch_by_with_cond_adj
+    assert_same :FOO, oarg.fetch_by_with_cond_adj
+
+    assert_raises Validation::InvalidAdjustingError do
+      OARG.parse with_cond_adj: Object.new
+    end
+
+    assert_raises Validation::InvalidWritingError do
+      OARG.parse with_cond_adj: 'foo'
     end
   end
 

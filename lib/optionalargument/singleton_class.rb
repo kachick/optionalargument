@@ -8,11 +8,9 @@ module OptionalArgument
       raise ArgumentError, 'block was not given' unless block_given?
 
       Class.new Store do
-        @names = {}          # autonym/alias => autonym
-        @must_autonyms = []
-        @conflict_autonyms = []
+        _init
         class_eval(&block)
-      end   
+      end
     end
 
   end
