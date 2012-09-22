@@ -50,8 +50,8 @@ module OptionalArgument; class Store
     end
     
     DEFAULT_ADD_OPT_OPTIONS = {
-      must:    false,
-      aliases: [].freeze,
+      must:      false,
+      aliases:   [].freeze,
       condition: BasicObject
     }.freeze
     
@@ -81,17 +81,26 @@ module OptionalArgument; class Store
       
       if options.fetch :must
         if options.has_key? :default
-          raise KeyConflictError, '"must" conflic "default"'
+          raise KeyConflictError, '"must" conflic with "default"'
         end
         
         @must_autonyms << autonym
       end
 
       if options.has_key? :default
-        @default_values[autonym] = options.fetch(:default)
+        @default_values[autonym] = options.fetch :default
       end
+      
+      [autonym, *options.fetch(:aliases)].each do |name|
+         name = name.to_sym
 
-      _def_instance_methods autonym, *options.fetch(:aliases).map(&:to_sym)
+        if @names.has_key? name
+          raise NameError, "already defined the name: #{name}"
+        end
+        
+        @names[name] = autonym
+        _def_instance_methods name
+      end      
 
       nil
     end
@@ -99,33 +108,25 @@ module OptionalArgument; class Store
     alias_method :opt, :add_option
     alias_method :on, :add_option
 
-    # @param [Symbol] autonym
-    # @param [Symbol] aliases
+    # @param [Symbol] name
     # @return [void] nil - but no means this value
-    def _def_instance_methods(autonym, *aliases)
-      [autonym, *aliases].each do |name|
-        if @names.has_key? name
-          raise NameError, "already defined the name: #{name}"
-        end
-        
-        @names[name] = autonym
-        
-        fetcher = :"fetch_by_#{name}"
+    def _def_instance_methods(name)
+      autonym = autonym_for_name name
+      fetcher = :"fetch_by_#{name}"
 
-        define_method fetcher do
-          @hash[autonym]
-        end
-        
-        alias_method name, fetcher
-        
-        predicator = :"with_#{name}?"
-
-        define_method predicator do
-          @hash.has_key? autonym
-        end
-        
-        alias_method :"#{name}?", predicator
+      define_method fetcher do
+        @hash[autonym]
       end
+        
+      alias_method name, fetcher
+        
+      predicator = :"with_#{name}?"
+
+      define_method predicator do
+        @hash.has_key? autonym
+      end
+        
+      alias_method :"#{name}?", predicator
 
       nil
     end
@@ -235,9 +236,9 @@ module OptionalArgument; class Store
     # @return [Hash] - autonym => default_value
     def _default_pairs_for(*autonyms)
       {}.tap {|h|
-        autonyms.each do |aut|
-          if @default_values.has_key? aut
-            h[aut] = _validate_argument aut, @default_values.fetch(aut)
+        autonyms.each do |auto|
+          if @default_values.has_key? auto
+            h[auto] = _validate_argument auto, @default_values.fetch(auto)
           end
         end
       }
