@@ -15,7 +15,7 @@ module OptionalArgument; class Store
         raise MalformedOptionsError, 'options must be key-value pairs'
       end
 
-      new _hash_for(options).tap {|h|
+      new _base_hash_for(options).tap {|h|
         recieved_autonyms = h.keys.map{|key|autonym_for_name key}
         _validate_autonym_combinations(*recieved_autonyms)
         h.update _default_pairs_for(*(autonyms - recieved_autonyms))
@@ -90,36 +90,45 @@ module OptionalArgument; class Store
       if options.has_key? :default
         @default_values[autonym] = options.fetch(:default)
       end
-      
-      [autonym, *options.fetch(:aliases).map(&:to_sym)].each do |name|
+
+      _def_instance_methods autonym, *options.fetch(:aliases).map(&:to_sym)
+
+      nil
+    end
+
+    alias_method :opt, :add_option
+    alias_method :on, :add_option
+
+    # @param [Symbol] autonym
+    # @param [Symbol] aliases
+    # @return [void] nil - but no means this value
+    def _def_instance_methods(autonym, *aliases)
+      [autonym, *aliases].each do |name|
         if @names.has_key? name
           raise NameError, "already defined the name: #{name}"
         end
         
         @names[name] = autonym
         
-        fetch = :"fetch_by_#{name}"
+        fetcher = :"fetch_by_#{name}"
 
-        define_method fetch do
+        define_method fetcher do
           @hash[autonym]
         end
         
-        alias_method name, fetch
+        alias_method name, fetcher
         
-        predicate = :"with_#{name}?"
+        predicator = :"with_#{name}?"
 
-        define_method predicate do
+        define_method predicator do
           @hash.has_key? autonym
         end
         
-        alias_method :"#{name}?", predicate
+        alias_method :"#{name}?", predicator
       end
-      
+
       nil
     end
-
-    alias_method :opt, :add_option
-    alias_method :on, :add_option
     
     # @param [Symbol, String, #to_sym] autonym1
     # @param [Symbol, String, #to_sym] autonym2
@@ -183,7 +192,9 @@ module OptionalArgument; class Store
       @adjusters[autonym] = adjuster
     end
 
-    def _hash_for(options)
+    # @param [#each_pair] options
+    # @return [Hash]
+    def _base_hash_for(options)
       {}.tap {|h|
         options.each_pair do |key, value|
           key = key.to_sym
@@ -199,6 +210,7 @@ module OptionalArgument; class Store
     end
 
     # @raise if invalid autonym combinations
+    # @return [void] nil - but no means this value
     def _validate_autonym_combinations(*recieved_autonyms)
       shortage_keys = @must_autonyms - recieved_autonyms
       
@@ -206,13 +218,17 @@ module OptionalArgument; class Store
         raise MalformedOptionsError,
           "shortage option parameter: #{shortage_keys.join(', ')}" 
       end
-      
-      if conflict = @conflict_autonym_sets.find{|con_set|
-          (con_set - recieved_autonyms).empty?
-        }
+
+      conflict = @conflict_autonym_sets.find{|con_set|
+        (con_set - recieved_autonyms).empty?
+      }
+
+      if conflict
         raise KeyConflictError,
           "conflict conbination thrown: #{conflict.join(', ')}"
       end
+
+      nil
     end
 
     # @param [Symbol] autonyms

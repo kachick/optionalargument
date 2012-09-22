@@ -113,16 +113,10 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
 end
 
 
-
-class Test_OptionalArgument_API < Test::Unit::TestCase
+class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
 
   OARG = OptionalArgument.define {
     opt :a
-    opt 'included space :)'
-    opt :with_cond, condition: AND(/\AFOO\z/, Symbol)
-    opt :with_adj, adjuster: ->arg{arg.to_sym}
-    opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
-                        adjuster: ->arg{arg.to_sym}
   }
 
   def test_to_strings
@@ -131,8 +125,33 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
     assert_equal oarg.inspect, oarg.to_s
     assert_not_same oarg.inspect, oarg.to_s
     assert_not_same oarg.to_s, oarg.to_s
-    assert oarg.to_s.include?('_API::OARG: a="A">')
+    assert oarg.to_s.include?('API::OARG: a="A">')
   end
+
+  def test_class_method_scope
+    assert_same false, OARG.respond_to?(:new)
+    assert_same true, OARG.respond_to?(:new, true)
+
+    assert_raises NoMethodError do
+      OARG.new({})
+    end
+
+    assert ([:for_options, :for_pairs, :parse] - OARG.public_methods).empty?
+
+    assert ([:add_option, :opt, :on, :add_conflict] - OARG.private_methods).empty?
+  end
+
+end
+
+class Test_OptionalArgument_ValidateValues < Test::Unit::TestCase
+
+  OARG = OptionalArgument.define {
+    opt 'included space :)'
+    opt :with_cond, condition: AND(/\AFOO\z/, Symbol)
+    opt :with_adj, adjuster: ->arg{arg.to_sym}
+    opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
+                        adjuster: ->arg{arg.to_sym}
+  }
 
   def test_strange_key
     oarg = OARG.parse :'included space :)' => 123
