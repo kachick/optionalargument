@@ -30,6 +30,20 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
     assert_same OptionalArgument::Store, Foo::FUNC1_OPTIONS.superclass
   end
 
+  def test_autonyms
+    assert_equal [:full_name, :favorite], Foo::FUNC1_OPTIONS.autonyms
+    assert_equal [:a, :b, :c], Foo::FUNC2_OPTIONS.autonyms
+    assert_not_same Foo::FUNC1_OPTIONS.autonyms, Foo::FUNC1_OPTIONS.autonyms
+    assert_not_same Foo::FUNC2_OPTIONS.autonyms, Foo::FUNC2_OPTIONS.autonyms
+  end
+
+  def test_names
+    assert_equal({name: :full_name, fullname: :full_name, full_name: :full_name, favorite: :favorite}, Foo::FUNC1_OPTIONS.names)
+    assert_equal({a: :a, b: :b, b1: :b, c: :c, c1: :c, c2: :c}, Foo::FUNC2_OPTIONS.names)
+    assert_not_same Foo::FUNC1_OPTIONS.names, Foo::FUNC1_OPTIONS.names
+    assert_not_same Foo::FUNC2_OPTIONS.names, Foo::FUNC2_OPTIONS.names
+  end
+
   def test_func1
     foo = Foo.new
 
@@ -113,16 +127,12 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
 end
 
 
-
-class Test_OptionalArgument_API < Test::Unit::TestCase
+class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
 
   OARG = OptionalArgument.define {
     opt :a
-    opt 'included space :)'
-    opt :with_cond, condition: AND(/\AFOO\z/, Symbol)
-    opt :with_adj, adjuster: ->arg{arg.to_sym}
-    opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
-                        adjuster: ->arg{arg.to_sym}
+    opt :b, aliases: [:b2]
+    opt :c, default: :C
   }
 
   def test_to_strings
@@ -131,8 +141,108 @@ class Test_OptionalArgument_API < Test::Unit::TestCase
     assert_equal oarg.inspect, oarg.to_s
     assert_not_same oarg.inspect, oarg.to_s
     assert_not_same oarg.to_s, oarg.to_s
-    assert oarg.to_s.include?('_API::OARG: a="A">')
+    assert oarg.to_s.include?('API::OARG: a="A", c=:C>')
   end
+
+  def test_class_method_scope
+    assert_same false, OARG.respond_to?(:new)
+    assert_same true, OARG.respond_to?(:new, true)
+
+    assert_raises NoMethodError do
+      OARG.new({})
+    end
+
+    assert ([:for_options, :for_pairs, :parse, :autonym_for_name, :autonym_for, :autonyms] - OARG.public_methods).empty?
+
+    assert ([:add_option, :opt, :on, :add_conflict] - OARG.private_methods).empty?
+  end
+
+  def test_fix_at_onetime
+    store = OptionalArgument.define {
+      opt :foo
+    }
+    assert_raises RuntimeError do
+      store.__send__ :opt, :bar
+    end
+  end
+
+  def test_reject_noassigned
+    assert_raises RuntimeError do
+      OptionalArgument.define {
+      }
+    end
+  end
+
+  def test_compare_eql?
+    oarg = OARG.parse a: 1
+    
+    assert_raises NoMethodError do
+      oarg.eql? BasicObject.new
+    end
+
+    assert_same false, oarg.eql?(Object.new)
+    assert_same true, oarg.eql?(OARG.parse a: 1)
+    assert_same false, oarg.eql?(OARG.parse a: 1.0)
+    assert_same false, oarg.eql?(OARG.parse({}))
+    assert_same false, oarg.eql?(OARG.parse a: 1, b: nil)
+
+    assert_same :MATCH, {oarg => :MATCH}.fetch(OARG.parse a: 1)
+  end
+
+  def test_compare
+    oarg = OARG.parse a: 1
+    
+    assert_raises NoMethodError do
+      oarg === BasicObject.new
+    end
+
+    assert_same false, oarg == Object.new
+    assert_same true, oarg == OARG.parse(a: 1)
+    assert_same true, oarg == OARG.parse(a: 1.0)
+    assert_same false, oarg == OARG.parse({})
+    assert_same false, oarg == OARG.parse(a: 1, b: nil)
+  end
+
+  def test_to_h
+    oarg = OARG.parse a: 'A'
+    assert_equal({a: 'A', c: :C}, oarg.to_h)
+    assert_not_same oarg.to_h, oarg.to_h
+  end
+
+  def test_each_pair
+    oarg = OARG.parse a: 'A', b2: 'B2'
+
+    yret = oarg.each_pair {}
+    assert_same oarg, yret
+    
+    yargs = []
+    oarg.each_pair do |k, v|
+      yargs << [k, v]
+    end
+
+    assert_equal [[:a, 'A'], [:b, 'B2'], [:c, :C]], yargs
+
+    enum = oarg.each_pair
+    assert_instance_of Enumerator, enum
+    assert_equal [:a, 'A'], enum.next
+    assert_equal [:b, 'B2'], enum.next
+    assert_equal [:c, :C], enum.next
+    assert_raises StopIteration do
+      enum.next
+    end
+  end
+
+end
+
+class Test_OptionalArgument_ValidateValues < Test::Unit::TestCase
+
+  OARG = OptionalArgument.define {
+    opt 'included space :)'
+    opt :with_cond, condition: AND(/\AFOO\z/, Symbol)
+    opt :with_adj, adjuster: ->arg{arg.to_sym}
+    opt :with_cond_adj, condition: AND(/\AFOO\z/, Symbol),
+                        adjuster: ->arg{arg.to_sym}
+  }
 
   def test_strange_key
     oarg = OARG.parse :'included space :)' => 123
