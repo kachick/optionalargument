@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = 'optionalargument'
   gem.require_paths = ['lib']
-  gem.version       = '0.0.2'
+  gem.version       = '0.0.3.a'
 
   gem.required_ruby_version = '>= 1.9.2'
 

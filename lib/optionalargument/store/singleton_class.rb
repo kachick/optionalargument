@@ -15,46 +15,14 @@ module OptionalArgument; class Store
         raise MalformedOptionsError, 'options must be key-value pairs'
       end
 
-      hash = {}
-      
-      options.each_pair do |key, value|
-        key = key.to_sym
-        unless @names.has_key? key
-          raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
-        end
-        raise KeyConflictError, key if hash.has_key? key
-
-        autonym = autonym_for_name key
-        hash[autonym] = _validate_argument autonym, value
-      end
-      
-      recieved_autonyms = hash.keys.map{|key|autonym_for_name key}
-      
-      shortage_keys = @must_autonyms - recieved_autonyms
-      
-      unless shortage_keys.empty?
-        raise MalformedOptionsError,
-          "shortage option parameter: #{shortage_keys.join(', ')}" 
-      end
-      
-      if conflict = @conflict_autonym_sets.find{|con_set|
-          (con_set - recieved_autonyms).empty?
-        }
-        raise KeyConflictError,
-          "conflict conbination thrown: #{conflict.join(', ')}"
-      end
-
-      (autonyms - recieved_autonyms).each do |unsetted_autonym|
-        if @default_values.has_key? unsetted_autonym
-          hash[unsetted_autonym] = \
-            _validate_argument unsetted_autonym,
-                               @default_values.fetch(unsetted_autonym)
-        end
-      end
-      
-      new hash
+      new _base_hash_for(options).tap {|h|
+        recieved_autonyms = h.keys.map{|key|autonym_for_name key}
+        _validate_autonym_combinations(*recieved_autonyms)
+        h.update _default_pairs_for(*(autonyms - recieved_autonyms))
+      }
     end
     
+    alias_method :for_pairs, :for_options
     alias_method :parse, :for_options
     
     # @param [Symbol, String, #to_sym] name
@@ -62,14 +30,24 @@ module OptionalArgument; class Store
     def autonym_for_name(name)
       @names.fetch name.to_sym
     end
+
+    alias_method :autonym_for, :autonym_for_name
     
-    # @return [Array<Symbol>]
+    # @return [Array<Symbol>] - autonym, autonym, ...
     def autonyms
-      @names.values
+      @names.values.uniq
+    end
+
+    # @return [Hash] - autonym/alias => autonym, ...
+    def names
+      @names.dup
     end
     
+    private :new
+
     private
     
+    # @return [void]
     def _init
       @names = {}                 # {autonym/alias => autonym, ...}
       @must_autonyms = []         # [autonym, autonym, ...]
@@ -77,11 +55,24 @@ module OptionalArgument; class Store
       @default_values = {}        # {autonym => value, ...}
       @conditions = {}            # {autonym => condiiton, ...}
       @adjusters = {}             # {autonym => adjuster, ...}
+
+      nil
+    end
+
+    # @return [void]
+    def _fix
+      raise 'no assigned members yet' if @names.empty?
+
+      instance_variables.each do |var|
+        instance_variable_get(var).freeze
+      end
+
+      nil
     end
     
     DEFAULT_ADD_OPT_OPTIONS = {
-      must:    false,
-      aliases: [].freeze,
+      must:      false,
+      aliases:   [].freeze,
       condition: BasicObject
     }.freeze
     
@@ -93,7 +84,7 @@ module OptionalArgument; class Store
     # @param [Hash] options
     # @option options [Boolean] :must
     # @option options :default
-    # @option options [Array<Symbol>] :aliases
+    # @option options [Array<Symbol, String, #to_sym>] :aliases
     # @option options [#===] :condition
     # @option options [#call] :adjuster
     # @return [nil]
@@ -103,63 +94,72 @@ module OptionalArgument; class Store
       options.validate_keys must: [:must, :aliases, :condition],
                             let:  [:default, :adjuster]
       
-      condition = options.fetch :condition
-      if condition.respond_to? :===
-        @conditions[autonym] = condition
-      else
-        raise TypeError, 'wrong object for condition'
-      end
+      _set_condition autonym, options.fetch(:condition)
       
       if options.has_key? :adjuster
-        adjuster = options.fetch :adjuster
-        if adjuster.respond_to? :call
-          @adjusters[autonym] = adjuster
-        else
-          raise TypeError, 'wrong object for adjuster'
-        end
+        _set_adjuster autonym, options.fetch(:adjuster)
       end
       
       if options.fetch :must
         if options.has_key? :default
-          raise KeyConflictError, '"must" conflic "default"'
+          raise KeyConflictError, '"must" conflic with "default"'
         end
         
         @must_autonyms << autonym
       end
 
       if options.has_key? :default
-        @default_values[autonym] = options.fetch(:default)
+        @default_values[autonym] = options.fetch :default
       end
       
-      [autonym, *options.fetch(:aliases).map(&:to_sym)].each do |name|
+      [autonym, *options.fetch(:aliases)].each do |name|
+         name = name.to_sym
+
         if @names.has_key? name
           raise NameError, "already defined the name: #{name}"
         end
         
         @names[name] = autonym
-        
-        fetch = :"fetch_by_#{name}"
+        _def_instance_methods name
+      end      
 
-        define_method fetch do
-          @hash[autonym]
-        end
-        
-        alias_method name, fetch
-        
-        predicate = :"with_#{name}?"
-
-        define_method predicate do
-          @hash.has_key? autonym
-        end
-        
-        alias_method :"#{name}?", predicate
-      end
-      
       nil
     end
 
     alias_method :opt, :add_option
     alias_method :on, :add_option
+
+    # @param [Symbol] _name
+    # @return [void] nil - but no means this value
+    def _def_instance_methods(_name)
+      autonym = autonym_for_name _name
+      fetcher = :"fetch_by_#{_name}"
+
+      define_method fetcher do
+        @pairs[autonym]
+      end
+        
+      alias_method _name, fetcher
+        
+      with_predicator = :"with_#{_name}?"
+
+      define_method with_predicator do
+        @pairs.has_key? autonym
+      end
+
+      predicator = :"#{_name}?"
+      alias_method predicator, with_predicator
+
+      overrides = [_name, fetcher, with_predicator, predicator].select{|callee|
+        Store.method_defined?(callee) || Store.private_method_defined?(callee)
+      }
+
+      unless overrides.empty?
+        warn "override methods: #{overrides.join(', ')}"
+      end
+
+      nil
+    end
     
     # @param [Symbol, String, #to_sym] autonym1
     # @param [Symbol, String, #to_sym] autonym2
@@ -206,7 +206,80 @@ module OptionalArgument; class Store
 
       value
     end
- 
+    
+    # @param [Symbol] autonym
+    # @param [#===] condition
+    # @return [condition]
+    def _set_condition(autonym, condition)
+      unless condition.respond_to? :===
+        raise TypeError, "#{condition.inspect} is wrong object for condition"
+      end
+
+      @conditions[autonym] = condition
+    end
+
+    # @param [Symbol] autonym
+    # @param [#call] adjuster
+    # @return [adjuster]
+    def _set_adjuster(autonym, adjuster)
+      unless adjuster.respond_to? :call
+        raise TypeError, "#{adjuster.inspect} is wrong object for adjuster"
+      end
+
+      @adjusters[autonym] = adjuster
+    end
+
+    # @param [#each_pair] options
+    # @return [Hash]
+    def _base_hash_for(options)
+      {}.tap {|h|
+        options.each_pair do |key, value|
+          key = key.to_sym
+          unless @names.has_key? key
+            raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
+          end
+          raise KeyConflictError, key if h.has_key? key
+          
+          autonym = autonym_for_name key
+          h[autonym] = _validate_argument autonym, value
+        end
+      }
+    end
+
+    # @raise if invalid autonym combinations
+    # @return [void] nil - but no means this value
+    def _validate_autonym_combinations(*recieved_autonyms)
+      shortage_keys = @must_autonyms - recieved_autonyms
+      
+      unless shortage_keys.empty?
+        raise MalformedOptionsError,
+          "shortage option parameter: #{shortage_keys.join(', ')}" 
+      end
+
+      conflict = @conflict_autonym_sets.find{|con_set|
+        (con_set - recieved_autonyms).empty?
+      }
+
+      if conflict
+        raise KeyConflictError,
+          "conflict conbination thrown: #{conflict.join(', ')}"
+      end
+
+      nil
+    end
+
+    # @param [Symbol] autonyms
+    # @return [Hash] - autonym => default_value
+    def _default_pairs_for(*autonyms)
+      {}.tap {|h|
+        autonyms.each do |auto|
+          if @default_values.has_key? auto
+            h[auto] = _validate_argument auto, @default_values.fetch(auto)
+          end
+        end
+      }
+    end
+
   end
 
 end; end

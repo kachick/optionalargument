@@ -23,14 +23,14 @@ require 'optionalargument'
 
 class Foo
 
-  FUNC_OPTIONS = OptionalArgument.define do
+  FUNC_OPTIONS = OptionalArgument.define {
     opt :a
     opt :b, default: ':)'
     opt :c, must: true
     opt :d, aliases: [:d2, :d3]
     opt :e
     conflict :a, :e
-  end
+  }
 
   def func(options={})
     opts = FUNC_OPTIONS.parse(options)
@@ -50,6 +50,7 @@ p opts.b?                   #=> true
 p opts.b                    #=> ":)"
 p opts.d?                   #=> false
 p opts.d                    #=> nil
+p opts.to_h                 #=> {:c=>3, :e=>5, :d=>4, :b=>":)"}
 
 foo.func(a: 1, c: 3, e: 5)  #=> Error: conflict conbination thrown: a, e
 opts = foo.func(c: 3,
@@ -63,11 +64,11 @@ p opts.d3                   #=> 4
 ### What value do you want? Declare It.
 
 ```ruby
-OPTARG = OptionalArgument.define do
+OPTARG = OptionalArgument.define {
   opt :x, condition: 3..5
   opt :y, condition: AND(Float, 3..5)
   opt :z, adjuster: ->arg{Float arg}
-end
+}
 
 OPTARG.parse x: 5            #=> pass : 5 is sufficient for 3..5
 OPTARG.parse x: 6            #=> error: 6 is deficient for 3..5 

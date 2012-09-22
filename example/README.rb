@@ -4,14 +4,14 @@ require_relative '../lib/optionalargument'
 
 class Foo
 
-  FUNC_OPTIONS = OptionalArgument.define do
+  FUNC_OPTIONS = OptionalArgument.define {
     opt :a
     opt :b, default: ':)'
     opt :c, must: true
     opt :d, aliases: [:d2, :d3]
     opt :e
     conflict :a, :e
-  end
+  }
 
   def func(options={})
     opts = FUNC_OPTIONS.parse(options)
@@ -36,12 +36,13 @@ opts = foo.func c: 3, e: 5, d2: 4
 p opts                      #=> #<Foo::FUNC_OPTIONS: c=3, e=5, d=4, b=":)">
 p opts.d3?                  #=> true
 p opts.d3                   #=> 4
+p opts.to_h                 #=> {:c=>3, :e=>5, :d=>4, :b=>":)"}
 
-OPTARG = OptionalArgument.define do
+OPTARG = OptionalArgument.define {
   opt :x, condition: 3..5
   opt :y, condition: AND(Float, 3..5)
   opt :z, adjuster: ->arg{Float arg}
-end
+}
 
 OPTARG.parse x: 5            #=> pass : 5 is sufficient for 3..5
 #OPTARG.parse x: 6           #=> error: 6 is deficient for 3..5 
