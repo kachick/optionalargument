@@ -232,12 +232,15 @@ module OptionalArgument; class Store
     end
 
     # @param [Symbol] autonyms
-    # @return [Hash] - autonym => value
+    # @return [Hash] - autonym => default_value
     def _default_pairs_for(*autonyms)
-      assocs = autonyms.
-        select{|aut|@default_values.has_key? aut}.
-        map{|aut|[aut, _validate_argument(aut, @default_values.fetch(aut))]}
-      Hash[assocs]
+      {}.tap {|h|
+        autonyms.each do |aut|
+          if @default_values.has_key? aut
+            h[aut] = _validate_argument aut, @default_values.fetch(aut)
+          end
+        end
+      }
     end
 
   end
