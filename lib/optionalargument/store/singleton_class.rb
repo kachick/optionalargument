@@ -190,7 +190,10 @@ module OptionalArgument; class Store
 
       value
     end
-
+    
+    # @param [Symbol] autonym
+    # @param [#===] condition
+    # @return [condition]
     def _set_condition(autonym, condition)
       unless condition.respond_to? :===
         raise TypeError, "#{condition.inspect} is wrong object for condition"
@@ -199,6 +202,9 @@ module OptionalArgument; class Store
       @conditions[autonym] = condition
     end
 
+    # @param [Symbol] autonym
+    # @param [#call] adjuster
+    # @return [adjuster]
     def _set_adjuster(autonym, adjuster)
       unless adjuster.respond_to? :call
         raise TypeError, "#{adjuster.inspect} is wrong object for adjuster"
