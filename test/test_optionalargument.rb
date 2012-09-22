@@ -141,6 +141,22 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     assert ([:add_option, :opt, :on, :add_conflict] - OARG.private_methods).empty?
   end
 
+  def test_fix_at_onetime
+    store = OptionalArgument.define {
+      opt :foo
+    }
+    assert_raises RuntimeError do
+      store.__send__ :opt, :bar
+    end
+  end
+
+  def test_reject_noassigned
+    assert_raises RuntimeError do
+      OptionalArgument.define {
+      }
+    end
+  end
+
 end
 
 class Test_OptionalArgument_ValidateValues < Test::Unit::TestCase

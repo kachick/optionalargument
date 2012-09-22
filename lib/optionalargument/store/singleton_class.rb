@@ -40,6 +40,7 @@ module OptionalArgument; class Store
 
     private
     
+    # @return [void]
     def _init
       @names = {}                 # {autonym/alias => autonym, ...}
       @must_autonyms = []         # [autonym, autonym, ...]
@@ -47,6 +48,19 @@ module OptionalArgument; class Store
       @default_values = {}        # {autonym => value, ...}
       @conditions = {}            # {autonym => condiiton, ...}
       @adjusters = {}             # {autonym => adjuster, ...}
+
+      nil
+    end
+
+    # @return [void]
+    def _fix
+      raise 'no assigned members yet' if @names.empty?
+
+      instance_variables.each do |var|
+        instance_variable_get(var).freeze
+      end
+
+      nil
     end
     
     DEFAULT_ADD_OPT_OPTIONS = {

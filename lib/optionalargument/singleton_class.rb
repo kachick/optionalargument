@@ -7,10 +7,11 @@ module OptionalArgument
     def define(&block)
       raise ArgumentError, 'block was not given' unless block_given?
 
-      Class.new Store do
+      Class.new(Store) {
         _init
         class_eval(&block)
-      end
+        _fix
+      }
     end
 
   end
