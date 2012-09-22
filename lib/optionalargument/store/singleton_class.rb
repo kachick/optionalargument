@@ -30,10 +30,17 @@ module OptionalArgument; class Store
     def autonym_for_name(name)
       @names.fetch name.to_sym
     end
+
+    alias_method :autonym_for, :autonym_for_name
     
-    # @return [Array<Symbol>]
+    # @return [Array<Symbol>] - autonym, autonym, ...
     def autonyms
-      @names.values
+      @names.values.uniq
+    end
+
+    # @return [Hash] - autonym/alias => autonym, ...
+    def names
+      @names.dup
     end
     
     private :new

@@ -30,6 +30,20 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
     assert_same OptionalArgument::Store, Foo::FUNC1_OPTIONS.superclass
   end
 
+  def test_autonyms
+    assert_equal [:full_name, :favorite], Foo::FUNC1_OPTIONS.autonyms
+    assert_equal [:a, :b, :c], Foo::FUNC2_OPTIONS.autonyms
+    assert_not_same Foo::FUNC1_OPTIONS.autonyms, Foo::FUNC1_OPTIONS.autonyms
+    assert_not_same Foo::FUNC2_OPTIONS.autonyms, Foo::FUNC2_OPTIONS.autonyms
+  end
+
+  def test_names
+    assert_equal({name: :full_name, fullname: :full_name, full_name: :full_name, favorite: :favorite}, Foo::FUNC1_OPTIONS.names)
+    assert_equal({a: :a, b: :b, b1: :b, c: :c, c1: :c, c2: :c}, Foo::FUNC2_OPTIONS.names)
+    assert_not_same Foo::FUNC1_OPTIONS.names, Foo::FUNC1_OPTIONS.names
+    assert_not_same Foo::FUNC2_OPTIONS.names, Foo::FUNC2_OPTIONS.names
+  end
+
   def test_func1
     foo = Foo.new
 
@@ -136,7 +150,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
       OARG.new({})
     end
 
-    assert ([:for_options, :for_pairs, :parse] - OARG.public_methods).empty?
+    assert ([:for_options, :for_pairs, :parse, :autonym_for_name, :autonym_for, :autonyms] - OARG.public_methods).empty?
 
     assert ([:add_option, :opt, :on, :add_conflict] - OARG.private_methods).empty?
   end
