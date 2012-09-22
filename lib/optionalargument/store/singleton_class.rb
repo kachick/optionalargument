@@ -77,7 +77,7 @@ module OptionalArgument; class Store
     # @param [Hash] options
     # @option options [Boolean] :must
     # @option options :default
-    # @option options [Array<Symbol>] :aliases
+    # @option options [Array<Symbol, String, #to_sym>] :aliases
     # @option options [#===] :condition
     # @option options [#call] :adjuster
     # @return [nil]
