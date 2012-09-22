@@ -131,6 +131,8 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
 
   OARG = OptionalArgument.define {
     opt :a
+    opt :b, aliases: [:b2]
+    opt :c, default: :C
   }
 
   def test_to_strings
@@ -139,7 +141,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     assert_equal oarg.inspect, oarg.to_s
     assert_not_same oarg.inspect, oarg.to_s
     assert_not_same oarg.to_s, oarg.to_s
-    assert oarg.to_s.include?('API::OARG: a="A">')
+    assert oarg.to_s.include?('API::OARG: a="A", c=:C>')
   end
 
   def test_class_method_scope
@@ -168,6 +170,65 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     assert_raises RuntimeError do
       OptionalArgument.define {
       }
+    end
+  end
+
+  def test_compare_eql?
+    oarg = OARG.parse a: 1
+    
+    assert_raises NoMethodError do
+      oarg.eql? BasicObject.new
+    end
+
+    assert_same false, oarg.eql?(Object.new)
+    assert_same true, oarg.eql?(OARG.parse a: 1)
+    assert_same false, oarg.eql?(OARG.parse a: 1.0)
+    assert_same false, oarg.eql?(OARG.parse({}))
+    assert_same false, oarg.eql?(OARG.parse a: 1, b: nil)
+
+    assert_same :MATCH, {oarg => :MATCH}.fetch(OARG.parse a: 1)
+  end
+
+  def test_compare
+    oarg = OARG.parse a: 1
+    
+    assert_raises NoMethodError do
+      oarg === BasicObject.new
+    end
+
+    assert_same false, oarg == Object.new
+    assert_same true, oarg == OARG.parse(a: 1)
+    assert_same true, oarg == OARG.parse(a: 1.0)
+    assert_same false, oarg == OARG.parse({})
+    assert_same false, oarg == OARG.parse(a: 1, b: nil)
+  end
+
+  def test_to_h
+    oarg = OARG.parse a: 'A'
+    assert_equal({a: 'A', c: :C}, oarg.to_h)
+    assert_not_same oarg.to_h, oarg.to_h
+  end
+
+  def test_each_pair
+    oarg = OARG.parse a: 'A', b2: 'B2'
+
+    yret = oarg.each_pair {}
+    assert_same oarg, yret
+    
+    yargs = []
+    oarg.each_pair do |k, v|
+      yargs << [k, v]
+    end
+
+    assert_equal [[:a, 'A'], [:b, 'B2'], [:c, :C]], yargs
+
+    enum = oarg.each_pair
+    assert_instance_of Enumerator, enum
+    assert_equal [:a, 'A'], enum.next
+    assert_equal [:b, 'B2'], enum.next
+    assert_equal [:c, :C], enum.next
+    assert_raises StopIteration do
+      enum.next
     end
   end
 

@@ -129,25 +129,34 @@ module OptionalArgument; class Store
     alias_method :opt, :add_option
     alias_method :on, :add_option
 
-    # @param [Symbol] name
+    # @param [Symbol] _name
     # @return [void] nil - but no means this value
-    def _def_instance_methods(name)
-      autonym = autonym_for_name name
-      fetcher = :"fetch_by_#{name}"
+    def _def_instance_methods(_name)
+      autonym = autonym_for_name _name
+      fetcher = :"fetch_by_#{_name}"
 
       define_method fetcher do
-        @hash[autonym]
+        @pairs[autonym]
       end
         
-      alias_method name, fetcher
+      alias_method _name, fetcher
         
-      predicator = :"with_#{name}?"
+      with_predicator = :"with_#{_name}?"
 
-      define_method predicator do
-        @hash.has_key? autonym
+      define_method with_predicator do
+        @pairs.has_key? autonym
       end
-        
-      alias_method :"#{name}?", predicator
+
+      predicator = :"#{_name}?"
+      alias_method predicator, with_predicator
+
+      overrides = [_name, fetcher, with_predicator, predicator].select{|callee|
+        Store.method_defined?(callee) || Store.private_method_defined?(callee)
+      }
+
+      unless overrides.empty?
+        warn "override methods: #{overrides.join(', ')}"
+      end
 
       nil
     end
