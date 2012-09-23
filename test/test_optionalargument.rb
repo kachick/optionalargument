@@ -141,7 +141,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     assert_equal oarg.inspect, oarg.to_s
     assert_not_same oarg.inspect, oarg.to_s
     assert_not_same oarg.to_s, oarg.to_s
-    assert oarg.to_s.include?('API::OARG: a="A", c=:C>')
+    assert_equal '#<optargs: a="A", c=:C>', oarg.inspect
   end
 
   def test_class_method_scope

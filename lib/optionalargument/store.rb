@@ -5,20 +5,34 @@ module OptionalArgument
   # Not included Enumerable. Because main role is to hold arg-names.
   class Store
 
+    alias_method :__class__, :class
+
     # @param [Hash, #to_hash] pairs
     def initialize(pairs)
       @pairs = pairs
     end
 
     # @param [Symbol, String, #to_sym] name
-    def [](name)
-      __send__ :"fetch_by_#{self.class.autonym_for_name name}"
+    # @return [Symbol] autonym
+    def autonym_for_name(name)
+      __class__.autonym_for_name name
     end
+
+    # @param [Symbol, String, #to_sym] name
+    def [](name)
+      @pairs[autonym_for_name name]
+    end
+
+    # @param [Symbol, String, #to_sym] name
+    def with?(name)
+      @pairs.has_key? autonym_for_name(name)
+    end
+
+    alias_method :has_key?, :with?
 
     # @return [String]
     def inspect
-      body = @pairs.each_pair.map{|k, v|"#{k}=#{v.inspect}"}.join(', ')
-      "#<options #{self.class.name}: #{body}>"
+      "#<optargs: #{@pairs.map{|k, v|"#{k}=#{v.inspect}"}.join(', ')}>"
     end
 
     alias_method :to_s, :inspect

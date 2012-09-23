@@ -8,6 +8,10 @@ module OptionalArgument; class Store
 
   class << self
 
+    private :new
+
+    # @group Specific Constructor
+
     # @param [Hash, Struct, #each_pair] options
     # @return [Store]
     def for_options(options)
@@ -24,6 +28,10 @@ module OptionalArgument; class Store
     
     alias_method :for_pairs, :for_options
     alias_method :parse, :for_options
+
+    # @endgroup
+
+    # @group Access option names
     
     # @param [Symbol, String, #to_sym] name
     # @return [Symbol] autonym
@@ -42,10 +50,12 @@ module OptionalArgument; class Store
     def names
       @names.dup
     end
-    
-    private :new
+
+    # @endgroup
 
     private
+
+    # @group Build and Fix Class's structure - Inner API
     
     # @return [void]
     def _init
@@ -69,7 +79,11 @@ module OptionalArgument; class Store
 
       nil
     end
+
+    # @endgroup
     
+    # @group Define options
+
     DEFAULT_ADD_OPT_OPTIONS = {
       must:      false,
       aliases:   [].freeze,
@@ -129,38 +143,6 @@ module OptionalArgument; class Store
     alias_method :opt, :add_option
     alias_method :on, :add_option
 
-    # @param [Symbol] _name
-    # @return [void] nil - but no means this value
-    def _def_instance_methods(_name)
-      autonym = autonym_for_name _name
-      fetcher = :"fetch_by_#{_name}"
-
-      define_method fetcher do
-        @pairs[autonym]
-      end
-        
-      alias_method _name, fetcher
-        
-      with_predicator = :"with_#{_name}?"
-
-      define_method with_predicator do
-        @pairs.has_key? autonym
-      end
-
-      predicator = :"#{_name}?"
-      alias_method predicator, with_predicator
-
-      overrides = [_name, fetcher, with_predicator, predicator].select{|callee|
-        Store.method_defined?(callee) || Store.private_method_defined?(callee)
-      }
-
-      unless overrides.empty?
-        warn "override methods: #{overrides.join(', ')}"
-      end
-
-      nil
-    end
-    
     # @param [Symbol, String, #to_sym] autonym1
     # @param [Symbol, String, #to_sym] autonym2
     # @param [Symbol, String, #to_sym] autonyms
@@ -179,7 +161,47 @@ module OptionalArgument; class Store
     end
 
     alias_method :conflict, :add_conflict
+
+    # @endgroup
+
+    # @group Define options - Inner API
+
+    # @param [Symbol] _name
+    # @return [void] nil - but no means this value
+    def _def_instance_methods(_name)
+      autonym = autonym_for_name _name
+      fetcher = :"fetch_by_#{_name}"
+
+      define_method fetcher do
+        self[autonym]
+      end
+        
+      alias_method _name, fetcher
+        
+      with_predicator = :"with_#{_name}?"
+
+      define_method with_predicator do
+        with? autonym
+      end
+
+      predicator = :"#{_name}?"
+      alias_method predicator, with_predicator
+
+      overrides = [_name, fetcher, with_predicator, predicator].select{|callee|
+        Store.method_defined?(callee) || Store.private_method_defined?(callee)
+      }
+
+      unless overrides.empty?
+        warn "override methods: #{overrides.join(', ')}"
+      end
+
+      nil
+    end
+
+    # @endgroup
     
+    # @group Constructor - Inner API
+
     # @param [#===] condition
     def _valid?(condition, value)
       condition === value
@@ -279,6 +301,8 @@ module OptionalArgument; class Store
         end
       }
     end
+
+    # @endgroup
 
   end
 
