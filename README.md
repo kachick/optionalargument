@@ -4,7 +4,7 @@ optionalargument
 Description
 -----------
 
-Flexible define and parse keyword like arguments too easy.
+Flexible define and strict parse keyword like arguments.
 
 Features
 --------
@@ -23,7 +23,7 @@ require 'optionalargument'
 
 class Foo
 
-  FUNC_OPTIONS = OptionalArgument.define {
+  OptArg = OptionalArgument.define {
     opt :a
     opt :b, default: ':)'
     opt :c, must: true
@@ -33,7 +33,7 @@ class Foo
   }
 
   def func(options={})
-    opts = FUNC_OPTIONS.parse(options)
+    opts = OptArg.parse(options)
   end
 
 end
@@ -43,7 +43,7 @@ foo = Foo.new
 foo.func(a: 1)              #=> Error: shortage option parameter: c
 opts = foo.func(a: 1,
                 c: 3)   
-p opts                      #=> #<Foo::FUNC_OPTIONS: a=1, c=3>
+p opts                      #=> #<optargs: a=1, c=3, b=":)">
 p opts.a?                   #=> true
 p opts.a                    #=> 1
 p opts.b?                   #=> true
@@ -56,7 +56,7 @@ foo.func(a: 1, c: 3, e: 5)  #=> Error: conflict conbination thrown: a, e
 opts = foo.func(c: 3,
                 e: 5,
                 d2: 4) 
-p opts                      #=> #<Foo::FUNC_OPTIONS: c=3, e=5, d=4, b=":)">
+p opts                      #=> #<optargs: c=3, e=5, d=4, b=":)">
 p opts.d3?                  #=> true
 p opts.d3                   #=> 4
 ```
@@ -83,7 +83,7 @@ Requirements
 -------------
 
 * Ruby - [1.9.2 or later](http://travis-ci.org/#!/kachick/optionalargument)
-* keyvalidatable - [0.0.3](https://github.com/kachick/keyvalidatable)
+* keyvalidatable - [0.0.4](https://github.com/kachick/keyvalidatable)
 * validation - [0.0.3](https://github.com/kachick/validation)
 
 Install
@@ -112,5 +112,5 @@ License
 
 The MIT X11 License  
 Copyright (c) 2012 Kenichi Kamiya  
-See the file LICENSE for further details.
+See MIT-LICENSE for further details.
 
