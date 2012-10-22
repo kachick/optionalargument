@@ -1,7 +1,7 @@
 Gem::Specification.new do |gem|
   gem.authors       = ['Kenichi Kamiya']
   gem.email         = ['kachick1+ruby@gmail.com']
-  gem.summary       = %q{Flexible define and strict parse keyword like arguments.}
+  gem.summary       = %q{Flexible and easy deal hash arguments.}
   gem.description   = gem.summary.dup
   gem.homepage      = 'https://github.com/kachick/optionalargument'
 
@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = 'optionalargument'
   gem.require_paths = ['lib']
-  gem.version       = '0.0.3.1'
+  gem.version       = '0.0.3.2'
 
   gem.required_ruby_version = '>= 1.9.2'
 

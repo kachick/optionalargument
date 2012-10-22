@@ -4,7 +4,7 @@ optionalargument
 Description
 -----------
 
-Flexible define and strict parse keyword like arguments.
+Flexible and easy deal hash arguments.
 
 Features
 --------
@@ -83,7 +83,7 @@ Requirements
 -------------
 
 * Ruby - [1.9.2 or later](http://travis-ci.org/#!/kachick/optionalargument)
-* keyvalidatable - [0.0.4](https://github.com/kachick/keyvalidatable)
+* keyvalidatable - [0.0.5](https://github.com/kachick/keyvalidatable)
 * validation - [0.0.3](https://github.com/kachick/validation)
 
 Install
