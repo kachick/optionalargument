@@ -104,9 +104,10 @@ module OptionalArgument; class Store
     # @return [nil]
     def add_option(autonym, options={})
       autonym = autonym.to_sym
-      options = DEFAULT_ADD_OPT_OPTIONS.merge(options).extend KeyValidatable
-      options.validate_keys must: [:must, :aliases, :condition],
-                            let:  [:default, :adjuster]
+      options = DEFAULT_ADD_OPT_OPTIONS.merge options
+      KeyValidatable.validate_keys options,
+                                          must: [:must, :aliases, :condition],
+                                          let:  [:default, :adjuster]
       
       _set_condition autonym, options.fetch(:condition)
       
