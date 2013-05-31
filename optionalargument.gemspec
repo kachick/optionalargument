@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'http://kachick.github.com/optionalargument/'
   gem.license       = 'MIT'
   gem.name          = 'optionalargument'
-  gem.version       = '0.0.3.3.a'
+  gem.version       = '0.0.3.3'
 
   gem.required_ruby_version = '>= 1.9.2'
 
