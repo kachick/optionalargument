@@ -1,6 +1,9 @@
 optionalargument
 =================
 
+[![Build Status](https://secure.travis-ci.org/kachick/optionalargument.png)](http://travis-ci.org/kachick/optionalargument)
+[![Gem Version](https://badge.fury.io/rb/optionalargument.png)](http://badge.fury.io/rb/optionalargument)
+
 Description
 -----------
 
@@ -83,20 +86,13 @@ Requirements
 -------------
 
 * Ruby - [1.9.2 or later](http://travis-ci.org/#!/kachick/optionalargument)
-* keyvalidatable - [0.0.5](https://github.com/kachick/keyvalidatable)
-* validation - [0.0.3](https://github.com/kachick/validation)
 
 Install
 -------
 
 ```bash
-$ gem install optionalargument
+gem install optionalargument
 ```
-
-Build Status
--------------
-
-[![Build Status](https://secure.travis-ci.org/kachick/optionalargument.png)](http://travis-ci.org/kachick/optionalargument)
 
 Link
 ----
@@ -113,4 +109,3 @@ License
 The MIT X11 License  
 Copyright (c) 2012 Kenichi Kamiya  
 See MIT-LICENSE for further details.
-
