@@ -7,12 +7,12 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'http://kachick.github.com/optionalargument/'
   gem.license       = 'MIT'
   gem.name          = 'optionalargument'
-  gem.version       = '0.0.3.3'
+  gem.version       = '0.0.4.a'
 
   gem.required_ruby_version = '>= 1.9.2'
 
   gem.add_runtime_dependency 'keyvalidatable', '~> 0.0.5'
-  gem.add_runtime_dependency 'validation', '~> 0.0.5'
+  gem.add_runtime_dependency 'validation', '~> 0.0.6'
 
   gem.add_development_dependency 'yard', '>= 0.8.6.1', '< 2'
   gem.add_development_dependency 'rake', '>= 10', '< 20'
