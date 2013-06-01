@@ -2,10 +2,18 @@ require_relative 'store/singleton_class'
 
 module OptionalArgument
 
-  # Not included Enumerable. Because main role is to hold arg-names.
+  # @note
+  # * "To be Enumerable" is not important for this class.
+  #   Because main role is just to hold options.
+  #
+  # * Depends only `_func` on implementing for this class.
+  #   Because `func` is keeped for holding options. 
   class Store
 
     alias_method :__class__, :class
+
+    alias_method :_to_enum, :to_enum
+    private :_to_enum
 
     # @param [Hash, #to_hash] pairs
     def initialize(pairs)
@@ -18,14 +26,17 @@ module OptionalArgument
       __class__.autonym_for_name name
     end
 
+    alias_method :_autonym_for_name, :autonym_for_name
+    private :_autonym_for_name
+
     # @param [Symbol, String, #to_sym] name
     def [](name)
-      @pairs[autonym_for_name name]
+      @pairs[_autonym_for_name name]
     end
 
     # @param [Symbol, String, #to_sym] name
     def with?(name)
-      @pairs.has_key? autonym_for_name(name)
+      @pairs.has_key? _autonym_for_name(name)
     end
 
     alias_method :has_key?, :with?
@@ -42,7 +53,7 @@ module OptionalArgument
     # @yieldreturn [self]
     # @return [Enumerator]
     def each_pair(&block)
-      return to_enum(__method__) unless block_given?
+      return _to_enum(__method__) unless block_given?
       
       @pairs.each_pair(&block)
       self
@@ -59,12 +70,12 @@ module OptionalArgument
     end
 
     def eql?(other)
-      other.instance_of?(self.class) && (other._pairs.eql? @pairs)
+      other.instance_of?(__class__) && (other._pairs.eql? @pairs)
     end
 
     # @return [Boolean]
     def ==(other)
-      other.instance_of?(self.class) && (other._pairs === @pairs)
+      other.instance_of?(__class__) && (other._pairs === @pairs)
     end
 
     alias_method :===, :==
