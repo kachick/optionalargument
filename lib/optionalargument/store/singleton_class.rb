@@ -300,8 +300,8 @@ module OptionalArgument; class Store
         end
       end
 
-      conflict = @conflict_autonym_sets.find{|con_set|
-        (con_set - recieved_autonyms).empty?
+      conflict = @conflict_autonym_sets.find{|conflict_autonym_set|
+        (conflict_autonym_set - recieved_autonyms).empty?
       }
 
       if conflict
