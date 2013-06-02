@@ -106,3 +106,64 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
   end
 
 end
+
+class Test_OptionalArgument_Requirements < Test::Unit::TestCase
+
+  OptArg = OptionalArgument.define {
+    opt :a
+    opt :b, requirements: [:a, :d]
+    opt :c
+    opt :d
+  }
+
+  def test_parse_error
+    assert_raises OptionalArgument::MalformedOptionsError do
+      OptArg.parse b:1
+    end
+
+    assert_raises OptionalArgument::MalformedOptionsError do
+      OptArg.parse a: 1, b: 1
+    end
+
+    assert_raises OptionalArgument::MalformedOptionsError do
+      OptArg.parse a: 1, b: 1, c: 1
+    end
+
+    assert_raises OptionalArgument::MalformedOptionsError do
+      OptArg.parse b:1 , c: 1
+    end
+
+    assert_raises OptionalArgument::MalformedOptionsError do
+      OptArg.parse b:1 , d: 1
+    end
+  end
+
+  def test_parse_passing
+    assert_instance_of OptArg, OptArg.parse(a: 1)
+    assert_instance_of OptArg, OptArg.parse(c: 1)
+    assert_instance_of OptArg, OptArg.parse(d: 1)
+    assert_instance_of OptArg, OptArg.parse(a: 1, d: 1)
+    assert_instance_of OptArg, OptArg.parse(a: 1, b: 1 ,d: 1)
+  end
+
+  def test_defining_error
+    assert_raises ArgumentError do
+      OptionalArgument.define {
+        opt :a
+        opt :b, requirements: [:a, :d, :e]
+        opt :c
+        opt :d
+      }
+    end
+
+    assert_raises ArgumentError do
+      OptionalArgument.define {
+        opt :a
+        opt :b, requirements: :a
+        opt :c
+        opt :d
+      }
+    end
+  end
+
+end

@@ -62,6 +62,7 @@ module OptionalArgument; class Store
       @names = {}                 # {autonym/alias => autonym, ...}
       @must_autonyms = []         # [autonym, autonym, ...]
       @conflict_autonym_sets = [] # [[*autonyms], [*autonyms], ...]
+      @requirements = {}          # {autonym => [*requirements], ...]
       @default_values = {}        # {autonym => value, ...}
       @conditions = {}            # {autonym => condiiton, ...}
       @adjusters = {}             # {autonym => adjuster, ...}
@@ -77,6 +78,8 @@ module OptionalArgument; class Store
         instance_variable_get(var).freeze
       end
 
+      _check_requirements
+
       nil
     end
 
@@ -85,9 +88,10 @@ module OptionalArgument; class Store
     # @group Define options
 
     DEFAULT_ADD_OPT_OPTIONS = {
-      must:      false,
-      aliases:   [].freeze,
-      condition: BasicObject
+      must:         false,
+      aliases:      [].freeze,
+      requirements: [].freeze,
+      condition:    BasicObject
     }.freeze
     
     if respond_to? :private_constant
@@ -99,6 +103,7 @@ module OptionalArgument; class Store
     # @option options [Boolean] :must
     # @option options :default
     # @option options [Array<Symbol, String, #to_sym>] :aliases
+    # @option options [Array<Symbol, String, #to_sym>] :requirements
     # @option options [#===] :condition
     # @option options [#call] :adjuster
     # @return [nil]
@@ -106,8 +111,8 @@ module OptionalArgument; class Store
       autonym = autonym.to_sym
       options = DEFAULT_ADD_OPT_OPTIONS.merge options
       KeyValidatable.validate_keys options,
-                                          must: [:must, :aliases, :condition],
-                                          let:  [:default, :adjuster]
+                                   must: [:must, :aliases, :requirements, :condition],
+                                   let:  [:default, :adjuster]
       
       _set_condition autonym, options.fetch(:condition)
       
@@ -126,7 +131,15 @@ module OptionalArgument; class Store
       if options.has_key? :default
         @default_values[autonym] = options.fetch :default
       end
-      
+
+      requirements = options.fetch :requirements
+
+      unless requirements.kind_of?(Array) && requirements.all?{|name|name.respond_to?(:to_sym)}
+        raise ArgumentError, "`requirements` requires to be Array<Symbol, String>"
+      end
+
+      @requirements[autonym] = requirements.map(&:to_sym).uniq
+
       [autonym, *options.fetch(:aliases)].each do |name|
          name = name.to_sym
 
@@ -136,7 +149,7 @@ module OptionalArgument; class Store
         
         @names[name] = autonym
         _def_instance_methods name
-      end      
+      end
 
       nil
     end
@@ -276,7 +289,15 @@ module OptionalArgument; class Store
       
       unless shortage_keys.empty?
         raise MalformedOptionsError,
-          "shortage option parameter: #{shortage_keys.join(', ')}" 
+          "shortage option parameter: #{shortage_keys.join(', ')}"
+      end
+
+      recieved_autonyms.each do |autonym|
+        shortage_keys_for_requirements = @requirements.fetch(autonym) - recieved_autonyms
+        unless shortage_keys_for_requirements.empty?
+          raise MalformedOptionsError,
+            "shortage option parameter for #{autonym}: #{shortage_keys_for_requirements.join(', ')}"
+        end
       end
 
       conflict = @conflict_autonym_sets.find{|con_set|
@@ -301,6 +322,19 @@ module OptionalArgument; class Store
           end
         end
       }
+    end
+
+    def _check_requirements
+      @requirements.each_pair do |autonym, names|
+        names.map!{|name|
+          if @names.has_key? name
+            autonym_for_name name
+          else
+            raise ArgumentError,
+              "`#{autonym}` with invalid requirements `#{names}`"
+          end
+        }
+      end
     end
 
     # @endgroup
