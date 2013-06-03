@@ -96,6 +96,10 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
       OptArg2.parse a2: true
     end
 
+    assert_raises ArgumentError do
+      OptArg2.parse({a2: true}, exception: ArgumentError)
+    end
+
     assert_raises OptionalArgument::MalformedOptionsError do
       OptArg2.parse({a2: true}, defined_only: true)
     end
@@ -116,6 +120,10 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
 
     assert_raises OptionalArgument::KeyConflictError do
       OptArg2.parse({a: true, c: true}, defined_only: false)
+    end
+
+    assert_raises KeyError do
+      OptArg2.parse({a: true, c: true}, exception: KeyError)
     end
 
     assert_raises OptionalArgument::KeyConflictError do

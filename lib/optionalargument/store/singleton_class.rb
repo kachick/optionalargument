@@ -13,7 +13,8 @@ module OptionalArgument; class Store
     # @group Specific Constructor
 
     DEFAULT_PARSE_OPTIONS = {
-      defined_only: true
+      defined_only: true,
+      exception: nil
     }.freeze
     
     if respond_to? :private_constant
@@ -23,21 +24,30 @@ module OptionalArgument; class Store
     # @param [Hash, Struct, #each_pair] options
     # @param [Hash] parsing_options
     # @option options [Boolean] :defined_only
+    # @option options [Exception] :exception
     # @return [Store]
     def for_options(options, parsing_options={})
-      unless options.respond_to? :each_pair
-        raise MalformedOptionsError, 'options must be key-value pairs'
-      end
-
       parsing_options = DEFAULT_PARSE_OPTIONS.merge parsing_options
       KeyValidatable.validate_keys parsing_options,
-                                   must: [:defined_only]
+                                   must: [:defined_only, :exception]
 
-      new _base_hash_for(options, parsing_options.fetch(:defined_only)).tap {|h|
-        recieved_autonyms = h.keys.map{|key|autonym_for_name key}
-        _validate_autonym_combinations(*recieved_autonyms)
-        h.update _default_pairs_for(*(autonyms - recieved_autonyms))
-      }
+      begin
+        unless options.respond_to? :each_pair
+          raise MalformedOptionsError, 'options must be key-value pairs'
+        end
+
+        new _base_hash_for(options, parsing_options.fetch(:defined_only)).tap {|h|
+          recieved_autonyms = h.keys.map{|key|autonym_for_name key}
+          _validate_autonym_combinations(*recieved_autonyms)
+          h.update _default_pairs_for(*(autonyms - recieved_autonyms))
+        }
+      rescue MalformedOptionsError, Validation::InvalidError => err
+        if replacemet = parsing_options.fetch(:exception)
+          raise replacemet.new, err
+        else
+          raise err
+        end
+      end
     end
     
     alias_method :for_pairs, :for_options
