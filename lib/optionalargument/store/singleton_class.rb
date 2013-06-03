@@ -12,14 +12,28 @@ module OptionalArgument; class Store
 
     # @group Specific Constructor
 
+    DEFAULT_PARSE_OPTIONS = {
+      defined_only: true
+    }.freeze
+    
+    if respond_to? :private_constant
+      private_constant :DEFAULT_PARSE_OPTIONS
+    end
+
     # @param [Hash, Struct, #each_pair] options
+    # @param [Hash] parsing_options
+    # @option options [Boolean] :defined_only
     # @return [Store]
-    def for_options(options)
+    def for_options(options, parsing_options={})
       unless options.respond_to? :each_pair
         raise MalformedOptionsError, 'options must be key-value pairs'
       end
 
-      new _base_hash_for(options).tap {|h|
+      parsing_options = DEFAULT_PARSE_OPTIONS.merge parsing_options
+      KeyValidatable.validate_keys parsing_options,
+                                   must: [:defined_only]
+
+      new _base_hash_for(options, parsing_options.fetch(:defined_only)).tap {|h|
         recieved_autonyms = h.keys.map{|key|autonym_for_name key}
         _validate_autonym_combinations(*recieved_autonyms)
         h.update _default_pairs_for(*(autonyms - recieved_autonyms))
@@ -223,7 +237,7 @@ module OptionalArgument; class Store
 
     # @param [Symbol] autonym - !MUST! already converted native autonym
     # @return [value]
-    def _validate_argument(autonym, value)
+    def _validate_value(autonym, value)
       if @adjusters.has_key? autonym
         adjuster = @adjusters.fetch autonym
         begin
@@ -266,18 +280,22 @@ module OptionalArgument; class Store
     end
 
     # @param [#each_pair] options
+    # @param [Boolean] defined_only
     # @return [Hash]
-    def _base_hash_for(options)
+    def _base_hash_for(options, defined_only)
       {}.tap {|h|
         options.each_pair do |key, value|
           key = key.to_sym
-          unless @names.has_key? key
-            raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
-          end
           raise KeyConflictError, key if h.has_key? key
-          
-          autonym = autonym_for_name key
-          h[autonym] = _validate_argument autonym, value
+
+          if @names.has_key? key
+            autonym = autonym_for_name key
+            h[autonym] = _validate_value autonym, value
+          else
+            if defined_only
+              raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
+            end
+          end
         end
       }
     end
@@ -318,7 +336,7 @@ module OptionalArgument; class Store
       {}.tap {|h|
         autonyms.each do |auto|
           if @default_values.has_key? auto
-            h[auto] = _validate_argument auto, @default_values.fetch(auto)
+            h[auto] = _validate_value auto, @default_values.fetch(auto)
           end
         end
       }
