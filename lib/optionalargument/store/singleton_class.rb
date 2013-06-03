@@ -308,10 +308,11 @@ module OptionalArgument; class Store
       {}.tap {|h|
         options.each_pair do |key, value|
           key = key.to_sym
-          raise KeyConflictError, key if h.has_key? key
-
+          
           if @names.has_key? key
             autonym = autonym_for_name key
+            raise KeyConflictError, key if h.has_key? autonym
+
             h[autonym] = _validate_value autonym, value
           else
             if defined_only

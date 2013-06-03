@@ -185,6 +185,10 @@ class Test_OptionalArgument_Aliases < Test::Unit::TestCase
     assert_same opts.origin?, opts.aliased?
     assert_same opts.with_origin?, opts.with_aliased?
     assert_same opts.with?(:origin), opts.with?(:aliased)
+
+    assert_raises OptionalArgument::KeyConflictError do
+      OptArg.parse({origin: ORIGIN, aliased: ORIGIN})
+    end
   end
 
   def test_deprecated
@@ -200,6 +204,10 @@ class Test_OptionalArgument_Aliases < Test::Unit::TestCase
     $stderr = StringIO.new
     assert_same opts.with?(:newer), opts.with?(:older)
     assert_equal '', $stderr.string
+
+    assert_raises OptionalArgument::KeyConflictError do
+      OptArg.parse({newer: ORIGIN, older: ORIGIN})
+    end
   ensure
     $stderr = origin_stderr
   end
