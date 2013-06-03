@@ -83,7 +83,7 @@ module OptionalArgument; class Store
     
     # @return [void]
     def _init
-      @names = {}                 # {autonym/alias => autonym, ...}
+      @names = {}                 # {autonym/alias/deprecated => autonym, ...}
       @must_autonyms = []         # [autonym, autonym, ...]
       @conflict_autonym_sets = [] # [[*autonyms], [*autonyms], ...]
       @requirements = {}          # {autonym => [*requirements], ...]
@@ -114,6 +114,7 @@ module OptionalArgument; class Store
     DEFAULT_ADD_OPT_OPTIONS = {
       must:         false,
       aliases:      [].freeze,
+      deprecateds:  [].freeze,
       requirements: [].freeze,
       condition:    BasicObject
     }.freeze
@@ -127,6 +128,7 @@ module OptionalArgument; class Store
     # @option options [Boolean] :must
     # @option options :default
     # @option options [Array<Symbol, String, #to_sym>] :aliases
+    # @option options [Array<Symbol, String, #to_sym>] :deprecateds
     # @option options [Array<Symbol, String, #to_sym>] :requirements
     # @option options [#===] :condition
     # @option options [#call] :adjuster
@@ -134,9 +136,11 @@ module OptionalArgument; class Store
     def add_option(autonym, options={})
       autonym = autonym.to_sym
       options = DEFAULT_ADD_OPT_OPTIONS.merge options
-      KeyValidatable.validate_keys options,
-                                   must: [:must, :aliases, :requirements, :condition],
-                                   let:  [:default, :adjuster]
+      KeyValidatable.validate_keys(
+        options,
+        must: [:must, :aliases, :deprecateds, :requirements, :condition],
+        let:  [:default, :adjuster]
+      )
       
       _set_condition autonym, options.fetch(:condition)
       
@@ -164,16 +168,21 @@ module OptionalArgument; class Store
 
       @requirements[autonym] = requirements.map(&:to_sym).uniq
 
-      [autonym, *options.fetch(:aliases)].each do |name|
-         name = name.to_sym
+      finalizer = -> names, deprecated do
+        names.each do |name|
+           name = name.to_sym
 
-        if @names.has_key? name
-          raise NameError, "already defined the name: #{name}"
+          if @names.has_key? name
+            raise NameError, "already defined the name: #{name}"
+          end
+          
+          @names[name] = autonym
+          _def_instance_methods name, deprecated
         end
-        
-        @names[name] = autonym
-        _def_instance_methods name
       end
+
+      finalizer.call [autonym, *options.fetch(:aliases)], false
+      finalizer.call options.fetch(:deprecateds), true
 
       nil
     end
@@ -205,12 +214,14 @@ module OptionalArgument; class Store
     # @group Define options - Inner API
 
     # @param [Symbol] _name
+    # @param [Boolean] deprecated
     # @return [void] nil - but no means this value
-    def _def_instance_methods(_name)
+    def _def_instance_methods(_name, deprecated)
       autonym = autonym_for_name _name
       fetcher = :"fetch_by_#{_name}"
 
       define_method fetcher do
+        warn "`#{__callee__}` is deprecated, use new API `#{autonym}`" if deprecated
         self[autonym]
       end
         
@@ -219,6 +230,7 @@ module OptionalArgument; class Store
       with_predicator = :"with_#{_name}?"
 
       define_method with_predicator do
+        warn "`#{__callee__}` is deprecated, use new API `#{"#{autonym}?/with_#{autonym}?"}`" if deprecated
         with? autonym
       end
 

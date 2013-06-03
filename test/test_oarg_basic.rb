@@ -107,6 +107,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
 
 end
 
+
 class Test_OptionalArgument_Requirements < Test::Unit::TestCase
 
   OptArg = OptionalArgument.define {
@@ -164,6 +165,43 @@ class Test_OptionalArgument_Requirements < Test::Unit::TestCase
         opt :d
       }
     end
+  end
+
+end
+
+
+class Test_OptionalArgument_Aliases < Test::Unit::TestCase
+
+  ORIGIN = ':)'.freeze
+
+  OptArg = OptionalArgument.define {
+    opt :origin, aliases: [:aliased]
+    opt :newer, deprecateds: [:older]
+  }
+
+  def test_aliases
+    opts = OptArg.parse({aliased: ORIGIN})
+    assert_same opts.origin, opts.aliased
+    assert_same opts.origin?, opts.aliased?
+    assert_same opts.with_origin?, opts.with_aliased?
+    assert_same opts.with?(:origin), opts.with?(:aliased)
+  end
+
+  def test_deprecated
+    origin_stderr = $stderr
+    opts = OptArg.parse({older: ORIGIN})
+    $stderr = StringIO.new
+    assert_same opts.newer, opts.older
+    assert_match "`older` is deprecated, use new API `newer`", $stderr.string.lines.last
+    assert_same opts.newer?, opts.older?
+    assert_match "`older?` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.last
+    assert_same opts.with_newer?, opts.with_older?
+    assert_match "`with_older?` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.last
+    $stderr = StringIO.new
+    assert_same opts.with?(:newer), opts.with?(:older)
+    assert_equal '', $stderr.string
+  ensure
+    $stderr = origin_stderr
   end
 
 end
