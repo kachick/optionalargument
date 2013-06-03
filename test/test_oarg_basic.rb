@@ -25,9 +25,9 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
       OARG.new({})
     end
 
-    assert ([:for_options, :for_pairs, :parse, :autonym_for_name, :autonym_for, :autonyms] - OARG.public_methods).empty?
+    assert(([:for_options, :for_pairs, :parse, :autonym_for_name, :autonym_for, :autonyms] - OARG.public_methods).empty?)
 
-    assert ([:add_option, :opt, :on, :add_conflict] - OARG.private_methods).empty?
+    assert(([:add_option, :opt, :on, :add_conflict] - OARG.private_methods).empty?)
   end
 
   def test_fix_at_onetime
@@ -196,11 +196,13 @@ class Test_OptionalArgument_Aliases < Test::Unit::TestCase
     opts = OptArg.parse({older: ORIGIN})
     $stderr = StringIO.new
     assert_same opts.newer, opts.older
-    assert_match "`older` is deprecated, use new API `newer`", $stderr.string.lines.last
+    older_pattern = RUBY_VERSION >= '2.0' ? 'older' : 'fetch_by_older'
+    assert_match "`#{older_pattern}` is deprecated, use new API `newer`", $stderr.string.lines.to_a.last
     assert_same opts.newer?, opts.older?
-    assert_match "`older?` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.last
+    older_pattern = RUBY_VERSION >= '2.0' ? 'older?' : 'with_older?'
+    assert_match "`#{older_pattern}` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.to_a.last
     assert_same opts.with_newer?, opts.with_older?
-    assert_match "`with_older?` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.last
+    assert_match "`with_older?` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.to_a.last
     $stderr = StringIO.new
     assert_same opts.with?(:newer), opts.with?(:older)
     assert_equal '', $stderr.string

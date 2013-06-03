@@ -226,7 +226,7 @@ module OptionalArgument; class Store
       end
         
       alias_method _name, fetcher
-        
+
       with_predicator = :"with_#{_name}?"
 
       define_method with_predicator do
