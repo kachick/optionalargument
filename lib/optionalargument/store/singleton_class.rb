@@ -324,6 +324,7 @@ module OptionalArgument; class Store
       }
     end
 
+    # @return [void]
     def _check_requirements
       @requirements.each_pair do |autonym, names|
         names.map!{|name|
@@ -335,6 +336,8 @@ module OptionalArgument; class Store
           end
         }
       end
+
+      nil
     end
 
     # @endgroup
