@@ -20,20 +20,6 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
     assert_same OptionalArgument::Store, OptArg1.superclass
   end
 
-  def test_autonyms
-    assert_equal [:full_name, :favorite], OptArg1.autonyms
-    assert_equal [:a, :b, :c], OptArg2.autonyms
-    assert_not_same OptArg1.autonyms, OptArg1.autonyms
-    assert_not_same OptArg2.autonyms, OptArg2.autonyms
-  end
-
-  def test_names
-    assert_equal({name: :full_name, fullname: :full_name, full_name: :full_name, favorite: :favorite}, OptArg1.names)
-    assert_equal({a: :a, b: :b, b1: :b, c: :c, c1: :c, c2: :c}, OptArg2.names)
-    assert_not_same OptArg1.names, OptArg1.names
-    assert_not_same OptArg2.names, OptArg2.names
-  end
-
   def test_func1
     assert_raises OptionalArgument::MalformedOptionsError do
       OptArg1.parse({})

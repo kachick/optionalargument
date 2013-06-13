@@ -71,9 +71,44 @@ module OptionalArgument; class Store
       @names.values.uniq
     end
 
-    # @return [Hash] - autonym/alias => autonym, ...
+    # @return [Hash] - autonym/alias/deprecated => autonym, ...
     def names
       @names.dup
+    end
+
+    # @return [Array<Symbol>]
+    def members
+      @names.keys.uniq
+    end
+
+    # @return [Array<Symbol>]
+    def aliases
+      @names.each_key.select{|name|aliased? name}
+    end
+
+    # @return [Array<Symbol>]
+    def deprecateds
+      @deprecateds.dup
+    end
+
+    # @param name [Symbol, String, #to_sym]
+    def autonym?(name)
+      @names.has_value? name.to_sym
+    end
+
+    # @param name [Symbol, String, #to_sym]
+    def member?(name)
+      @names.has_key? name.to_sym
+    end
+
+    # @param name [Symbol, String, #to_sym]
+    def aliased?(name)
+      member?(name) && !autonym?(name) && !deprecated?(name)
+    end
+
+    # @param name [Symbol, String, #to_sym]
+    def deprecated?(name)
+      @deprecateds.include? name.to_sym
     end
 
     # @endgroup
@@ -88,6 +123,7 @@ module OptionalArgument; class Store
       @must_autonyms = []         # [autonym, autonym, ...]
       @conflict_autonym_sets = [] # [[*autonyms], [*autonyms], ...]
       @requirements = {}          # {autonym => [*requirements], ...]
+      @deprecateds = []           # [deprecated, deprecated, ...]
       @default_values = {}        # {autonym => value, ...}
       @conditions = {}            # {autonym => condiiton, ...}
       @adjusters = {}             # {autonym => adjuster, ...}
@@ -169,21 +205,20 @@ module OptionalArgument; class Store
 
       @requirements[autonym] = requirements.map(&:to_sym).uniq
 
-      finalizer = -> names, deprecated do
-        names.each do |name|
-           name = name.to_sym
+      deprecateds = options.fetch :deprecateds
 
-          if @names.has_key? name
-            raise NameError, "already defined the name: #{name}"
-          end
-          
-          @names[name] = autonym
-          _def_instance_methods name, deprecated
+      @deprecateds.concat deprecateds
+
+      [autonym, *options.fetch(:aliases), *deprecateds].each do |name|
+         name = name.to_sym
+
+        if @names.has_key? name
+          raise NameError, "already defined the name: #{name}"
         end
+        
+        @names[name] = autonym
+        _def_instance_methods name
       end
-
-      finalizer.call [autonym, *options.fetch(:aliases)], false
-      finalizer.call options.fetch(:deprecateds), true
 
       nil
     end
@@ -215,14 +250,12 @@ module OptionalArgument; class Store
     # @group Define options - Inner API
 
     # @param _name [Symbol]
-    # @param deprecated [Boolean]
     # @return [nil]
-    def _def_instance_methods(_name, deprecated)
+    def _def_instance_methods(_name)
       autonym = autonym_for_name _name
       fetcher = :"fetch_by_#{_name}"
 
       define_method fetcher do
-        warn "`#{__callee__}` is deprecated, use new API `#{autonym}`" if deprecated
         self[autonym]
       end
         
@@ -231,7 +264,6 @@ module OptionalArgument; class Store
       with_predicator = :"with_#{_name}?"
 
       define_method with_predicator do
-        warn "`#{__callee__}` is deprecated, use new API `#{"#{autonym}?/with_#{autonym}?"}`" if deprecated
         with? autonym
       end
 
@@ -315,22 +347,28 @@ module OptionalArgument; class Store
     # @param defined_only [Boolean]
     # @return [Hash]
     def _autonym_hash_for(options, defined_only)
-      {}.tap {|h|
-        options.each_pair do |key, value|
-          key = key.to_sym
-          
-          if @names.has_key? key
-            autonym = autonym_for_name key
-            raise KeyConflictError, key if h.has_key? autonym
+      hash = {}
 
-            h[autonym] = _validate_value autonym, value
-          else
-            if defined_only
-              raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
-            end
+      options.each_pair do |key, value|
+        key = key.to_sym
+        
+        if @names.has_key? key
+          autonym = autonym_for_name key
+          raise KeyConflictError, key if hash.has_key? autonym
+
+          if deprecated? key
+            warn "`#{key}` is deprecated, use `#{autonym}`"
+          end
+
+          hash[autonym] = _validate_value autonym, value
+        else
+          if defined_only
+            raise MalformedOptionsError, %Q!unknown defined name "#{key}"!
           end
         end
-      }
+      end
+
+      hash
     end
 
     # @param recieved_autonyms [Array<Symbol>]

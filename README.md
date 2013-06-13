@@ -67,7 +67,7 @@ OptArg = OptionalArgument.define {
 OptArg.parse(a: 1, b: 1) #=> Error: conflict conbination thrown: a, b'
 OptArg.parse(c: 1)       #=> Error: `c` requires  `b` and `d`
 OptArg.parse(d2: 1).d3   #=> 1
-OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2/e3` is deprecated, use new API `e`" 
+OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2` is deprecated, use `e`" 
 ```
 
 ### Validate and coerce value

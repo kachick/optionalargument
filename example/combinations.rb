@@ -26,4 +26,4 @@ rescue
 end
 
 p OptArg.parse(d2: 1).d3   #=> 1
-p OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2/e3` is deprecated, use new API `e`" 
+p OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2` is deprecated, use `e`" 

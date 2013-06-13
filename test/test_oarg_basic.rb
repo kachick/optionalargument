@@ -195,17 +195,15 @@ class Test_OptionalArgument_Aliases < Test::Unit::TestCase
 
   def test_deprecated
     origin_stderr = $stderr
+
+    $stderr = StringIO.new
     opts = OptArg.parse({older: ORIGIN})
+    assert_equal "`older` is deprecated, use `newer`\n", $stderr.string.lines.to_a.last
+
     $stderr = StringIO.new
     assert_same opts.newer, opts.older
-    older_pattern = RUBY_VERSION >= '2.0' ? 'older' : 'fetch_by_older'
-    assert_match "`#{older_pattern}` is deprecated, use new API `newer`", $stderr.string.lines.to_a.last
     assert_same opts.newer?, opts.older?
-    older_pattern = RUBY_VERSION >= '2.0' ? 'older?' : 'with_older?'
-    assert_match "`#{older_pattern}` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.to_a.last
     assert_same opts.with_newer?, opts.with_older?
-    assert_match "`with_older?` is deprecated, use new API `newer?/with_newer?`", $stderr.string.lines.to_a.last
-    $stderr = StringIO.new
     assert_same opts.with?(:newer), opts.with?(:older)
     assert_equal '', $stderr.string
 
