@@ -71,11 +71,6 @@ module OptionalArgument; class Store
       @names.values.uniq
     end
 
-    # @return [Hash] - autonym/alias/deprecated => autonym, ...
-    def names
-      @names.dup
-    end
-
     # @return [Array<Symbol>]
     def members
       @names.keys
@@ -109,6 +104,12 @@ module OptionalArgument; class Store
     # @param name [Symbol, String, #to_sym]
     def deprecated?(name)
       @deprecateds.include? name.to_sym
+    end
+
+    # for debug
+    # @return [Hash] - autonym/alias/deprecated => autonym, ...
+    def names_with_autonym
+      @names.dup
     end
 
     # @endgroup

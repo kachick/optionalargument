@@ -19,9 +19,17 @@ class Test_OptionalArgument_Reflection < Test::Unit::TestCase
     assert_not_same OptArg.autonyms, OptArg.autonyms
   end
 
-  def test_names
-    assert_equal({a: :a, b: :b, b1: :b, c: :c, c1: :c, c2: :c, d: :d, d1: :d, e: :e, e1: :e, e2: :e, z: :z}, OptArg.names)
-    assert_not_same OptArg.names, OptArg.names
+  def test_names_with_autonym
+    assert_equal(
+      {a: :a,
+       b: :b, b1: :b,
+       c: :c, c1: :c, c2: :c,
+       d: :d, d1: :d,
+       e: :e, e1: :e, e2: :e,
+       z: :z},
+       OptArg.names_with_autonym
+    )
+    assert_not_same OptArg.names_with_autonym, OptArg.names_with_autonym
   end
 
   def test_members
