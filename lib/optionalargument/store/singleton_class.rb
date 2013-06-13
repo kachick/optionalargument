@@ -21,10 +21,10 @@ module OptionalArgument; class Store
       private_constant :DEFAULT_PARSE_OPTIONS
     end
 
-    # @param [Hash, Struct, #each_pair] options
-    # @param [Hash] parsing_options
+    # @param options [Hash, Struct, #each_pair]
     # @option options [Boolean] :defined_only
     # @option options [Exception] :exception
+    # @param parsing_options [Hash]
     # @return [Store]
     def for_options(options, parsing_options={})
       parsing_options = DEFAULT_PARSE_OPTIONS.merge parsing_options
@@ -41,7 +41,7 @@ module OptionalArgument; class Store
           _validate_autonym_combinations(*recieved_autonyms)
           h.update _default_pairs_for(*(autonyms - recieved_autonyms))
         }
-        
+
         new base_hash
       rescue MalformedOptionsError, Validation::InvalidError => err
         if replacemet = parsing_options.fetch(:exception)
@@ -59,8 +59,8 @@ module OptionalArgument; class Store
 
     # @group Access option names
     
-    # @param [Symbol, String, #to_sym] name
-    # @return [Symbol] autonym
+    # @param name [Symbol, String, #to_sym]
+    # @return [Symbol]
     def autonym_for_name(name)
       @names.fetch name.to_sym
     end
@@ -83,7 +83,7 @@ module OptionalArgument; class Store
 
     # @group Build and Fix Class's structure - Inner API
     
-    # @return [void]
+    # @return [nil]
     def _init
       @names = {}                 # {autonym/alias/deprecated => autonym, ...}
       @must_autonyms = []         # [autonym, autonym, ...]
@@ -96,7 +96,7 @@ module OptionalArgument; class Store
       nil
     end
 
-    # @return [void]
+    # @return [nil]
     def _fix
       raise 'no assigned members yet' if @names.empty?
 
@@ -125,8 +125,8 @@ module OptionalArgument; class Store
       private_constant :DEFAULT_ADD_OPT_OPTIONS
     end
     
-    # @param [Symbol, String, #to_sym] autonym
-    # @param [Hash] options
+    # @param autonym [Symbol, String, #to_sym]
+    # @param options [Hash]
     # @option options [Boolean] :must
     # @option options :default
     # @option options [Array<Symbol, String, #to_sym>] :aliases
@@ -192,9 +192,9 @@ module OptionalArgument; class Store
     alias_method :opt, :add_option
     alias_method :on, :add_option
 
-    # @param [Symbol, String, #to_sym] autonym1
-    # @param [Symbol, String, #to_sym] autonym2
-    # @param [Symbol, String, #to_sym] autonyms
+    # @param autonym1 [Symbol, String, #to_sym]
+    # @param autonym2 [Symbol, String, #to_sym]
+    # @param autonyms [Symbol, String, #to_sym]
     # @return [nil]
     def add_conflict(autonym1, autonym2, *autonyms)
       autonyms = [autonym1, autonym2, *autonyms].map(&:to_sym)
@@ -215,9 +215,9 @@ module OptionalArgument; class Store
 
     # @group Define options - Inner API
 
-    # @param [Symbol] _name
-    # @param [Boolean] deprecated
-    # @return [void] nil - but no means this value
+    # @param _name [Symbol]
+    # @param deprecated [Boolean]
+    # @return [nil]
     def _def_instance_methods(_name, deprecated)
       autonym = autonym_for_name _name
       fetcher = :"fetch_by_#{_name}"
@@ -254,12 +254,12 @@ module OptionalArgument; class Store
     
     # @group Constructor - Inner API
 
-    # @param [#===] condition
+    # @param condition [#===]
     def _valid?(condition, value)
       condition === value
     end
 
-    # @param [Symbol] autonym - !MUST! already converted native autonym
+    # @param autonym [Symbol] !MUST! already converted native autonym
     # @return [value]
     def _validate_value(autonym, value)
       if @adjusters.has_key? autonym
@@ -281,8 +281,8 @@ module OptionalArgument; class Store
       value
     end
     
-    # @param [Symbol] autonym
-    # @param [#===] condition
+    # @param autonym [Symbol]
+    # @param condition [#===]
     # @return [condition]
     def _set_condition(autonym, condition)
       unless condition.respond_to? :===
@@ -292,8 +292,8 @@ module OptionalArgument; class Store
       @conditions[autonym] = condition
     end
 
-    # @param [Symbol] autonym
-    # @param [#call] adjuster
+    # @param autonym [Symbol]
+    # @param adjuster [#call]
     # @return [adjuster]
     def _set_adjuster(autonym, adjuster)
       unless adjuster.respond_to? :call
@@ -303,8 +303,8 @@ module OptionalArgument; class Store
       @adjusters[autonym] = adjuster
     end
 
-    # @param [#each_pair] options
-    # @param [Boolean] defined_only
+    # @param options [#each_pair]
+    # @param defined_only [Boolean]
     # @return [Hash]
     def _base_hash_for(options, defined_only)
       {}.tap {|h|
@@ -325,8 +325,8 @@ module OptionalArgument; class Store
       }
     end
 
-    # @raise if invalid autonym combinations
-    # @return [void] nil - but no means this value
+    # @raise [MalformedOptionsError, KeyConflictError] if invalid autonym combinations
+    # @return [nil]
     def _validate_autonym_combinations(*recieved_autonyms)
       shortage_keys = @must_autonyms - recieved_autonyms
       
@@ -355,8 +355,8 @@ module OptionalArgument; class Store
       nil
     end
 
-    # @param [Symbol] autonyms
-    # @return [Hash] - autonym => default_value
+    # @param autonyms [Symbol]
+    # @return [Hash]  autonym => default_value
     def _default_pairs_for(*autonyms)
       {}.tap {|h|
         autonyms.each do |auto|
@@ -367,7 +367,7 @@ module OptionalArgument; class Store
       }
     end
 
-    # @return [void]
+    # @return [nil]
     def _check_requirements
       @requirements.each_pair do |autonym, names|
         names.map!{|name|
