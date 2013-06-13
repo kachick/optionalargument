@@ -7,80 +7,122 @@ optionalargument
 Description
 -----------
 
-Flexible and easy deal hash arguments.
+Revenge of the Hash options.
+Hash will beat `keyword arguments`!!
 
 Features
 --------
 
-* Definition so flexible and strict parse the key-value options.
-* Parsed objects can use as struct like API.
+* Flexible and readable definitions
+* Strict parsing for key combinations
+* Key compatible for Symbol<->String
+* Validate and coerce values
+* You can use parsed options as Struct
 * Pure Ruby :)
 
 Usage
 -----
 
-### What keys do you want? Declare it.
+Of course, you can mix following features :)  
+Clean up `DEFUALT_OPTIONS.merge(options)` and validations!
+
+### Basic API
 
 ```ruby
 require 'optionalargument'
 
 class Foo
-
-  OptArg = OptionalArgument.define {
-    opt :a
-    opt :b, default: ':)'
-    opt :c, must: true
-    opt :d, aliases: [:d2, :d3]
-    opt :e
-    conflict :a, :e
+  FuncOptArg = OptionalArgument.define {
+    opt :a, must: true
+    opt :b
   }
 
   def func(options={})
-    opts = OptArg.parse(options)
+    opts = FuncOptArg.parse options
+    p opts.a
+    p opts.b?
+    p opts.b
   end
-
 end
 
 foo = Foo.new
-
-foo.func(a: 1)              #=> Error: shortage option parameter: c
-opts = foo.func(a: 1,
-                c: 3)   
-p opts                      #=> #<optargs: a=1, c=3, b=":)">
-p opts.a?                   #=> true
-p opts.a                    #=> 1
-p opts.b?                   #=> true
-p opts.b                    #=> ":)"
-p opts.d?                   #=> false
-p opts.d                    #=> nil
-p opts.to_h                 #=> {:c=>3, :e=>5, :d=>4, :b=>":)"}
-
-foo.func(a: 1, c: 3, e: 5)  #=> Error: conflict conbination thrown: a, e
-opts = foo.func(c: 3,
-                e: 5,
-                d2: 4) 
-p opts                      #=> #<optargs: c=3, e=5, d=4, b=":)">
-p opts.d3?                  #=> true
-p opts.d3                   #=> 4
+foo.func a: 1           #=> opts.a => 1, opts.b? => false, opts.b => nil
+foo.func a: 1, "b" => 2 #=> opts.a => 1, opts.b? => true, opts.b => 2
+foo.func "b" => 2       #=> Error (`a` is must, but not passed)
+foo.func a:1, c: 3      #=> Error (`c` is not defined)
 ```
 
-### What value do you want? Declare It.
+### Key combinations
 
 ```ruby
-OPTARG = OptionalArgument.define {
+OptArg = OptionalArgument.define {
+  opt :a
+  opt :b
+  conflict :a, :b
+  opt :c, requirements: [:b, :d]
+  opt :d, aliases: [:d2, :d3]
+  opt :e, deprecateds: [:e2, :e3]
+}
+
+OptArg.parse(a: 1, b: 1) #=> Error: conflict conbination thrown: a, b'
+OptArg.parse(c: 1)       #=> Error: `c` requires  `b` and `d`
+OptArg.parse(d2: 1).d3   #=> 1
+OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2` is deprecated, use new API `e`" 
+```
+
+### Validate and coerce value
+
+```ruby
+OptArg = OptionalArgument.define {
   opt :x, condition: 3..5
   opt :y, condition: AND(Float, 3..5)
   opt :z, adjuster: ->arg{Float arg}
 }
 
-OPTARG.parse x: 5            #=> pass : 5 is sufficient for 3..5
-OPTARG.parse x: 6            #=> error: 6 is deficient for 3..5 
-OPTARG.parse y: 5            #=> error: 5 is deficient for Float
-OPTARG.parse y: 5.0          #=> pass : 5.0 is sufficient for 3..5 and Float
-OPTARG.parse(z: '1').z       #=> 1.0  : casted under adjuster
+OptArg.parse x: 5       #=> pass : 5 is sufficient for 3..5
+OptArg.parse x: 6       #=> Error: 6 is deficient for 3..5 
+OptArg.parse y: 5       #=> Error: 5 is deficient for Float
+OptArg.parse y: 5.0     #=> pass : 5.0 is sufficient for 3..5 and Float
+OptArg.parse(z: '1').z  #=> 1.0  : casted under adjuster
 ```
 
-Of course, you can mix these options :)
+### Default value
+
+```ruby
+OptArg = OptionalArgument.define {
+  opt :a
+  opt :b, default: 'This is a default value'
+}
+
+OptArg.parse(a: 1).b  #=> 'This is a default value'
+```
+
+### Relax parsing
+
+[Builtin features are designed by relax parsing for unknown options.](http://www.ruby-forum.com/topic/4402711#1064528)
+
+```ruby
+OptArg = OptionalArgument.define {
+  opt :known, must: true
+}
+
+opts = OptArg.parse(
+         {known: 1, unknown: 2},
+         strict: false)          #=> pass
+opts.unknown?                    #=> false
+opts.unknown                     #=> nil
+```
+
+### Use specific error
+
+```ruby
+OptArg = OptionalArgument.define {
+  opt :a
+}
+
+OptArg.parse({b: 1}, exception: ArgumentError) #=> ArgumentError
+OptArg.parse({b: 1}, exception: KeyError)      #=> KeyError
+```
 
 Requirements
 -------------
@@ -97,6 +139,7 @@ gem install optionalargument
 Link
 ----
 
+* [Home](http://kachick.github.com/optionalargument/)
 * [code](https://github.com/kachick/optionalargument)
 * [API](http://kachick.github.com/optionalargument/yard/frames.html)
 * [issues](https://github.com/kachick/optionalargument/issues)

@@ -4,7 +4,9 @@ require './lib/optionalargument/version'
 Gem::Specification.new do |gem|
   # specific
 
-  gem.description   = %q{Flexible and easy deal hash arguments.}
+  gem.description   = %q{Revenge of the Hash options.
+
+Hash will beat `keyword arguments`!!}
 
   gem.summary       = gem.description.dup
   gem.homepage      = 'http://kachick.github.com/optionalargument/'
