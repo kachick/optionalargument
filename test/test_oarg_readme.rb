@@ -1,3 +1,5 @@
+# coding: us-ascii
+
 require_relative 'helper'
 
 class Test_OptionalArgument_README < Test::Unit::TestCase

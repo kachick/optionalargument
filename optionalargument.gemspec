@@ -1,3 +1,5 @@
+# coding: us-ascii
+
 Gem::Specification.new do |gem|
   # specific
 

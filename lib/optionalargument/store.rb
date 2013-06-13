@@ -1,3 +1,5 @@
+# coding: us-ascii
+
 require_relative 'store/singleton_class'
 
 module OptionalArgument

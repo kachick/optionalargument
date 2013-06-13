@@ -1,3 +1,4 @@
+# coding: us-ascii
 source 'https://rubygems.org'
 
 gemspec
