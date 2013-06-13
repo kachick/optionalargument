@@ -78,7 +78,7 @@ module OptionalArgument; class Store
 
     # @return [Array<Symbol>]
     def members
-      @names.keys.uniq
+      @names.keys
     end
 
     # @return [Array<Symbol>]
