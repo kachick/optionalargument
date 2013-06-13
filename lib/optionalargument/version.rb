@@ -2,6 +2,6 @@
 
 module OptionalArgument
 
-  VERSION = '0.0.4.a'.freeze
+  VERSION = '0.1.0'.freeze
 
 end
