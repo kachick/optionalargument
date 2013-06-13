@@ -36,11 +36,13 @@ module OptionalArgument; class Store
           raise MalformedOptionsError, 'options must be key-value pairs'
         end
 
-        new _base_hash_for(options, parsing_options.fetch(:defined_only)).tap {|h|
+        base_hash = _base_hash_for(options, parsing_options.fetch(:defined_only)).tap {|h|
           recieved_autonyms = h.keys.map{|key|autonym_for_name key}
           _validate_autonym_combinations(*recieved_autonyms)
           h.update _default_pairs_for(*(autonyms - recieved_autonyms))
         }
+        
+        new base_hash
       rescue MalformedOptionsError, Validation::InvalidError => err
         if replacemet = parsing_options.fetch(:exception)
           raise replacemet.new, err
@@ -264,8 +266,8 @@ module OptionalArgument; class Store
         adjuster = @adjusters.fetch autonym
         begin
           value = adjuster.call value
-        rescue Exception
-          raise Validation::InvalidAdjustingError, $!
+        rescue Exception => err
+          raise Validation::InvalidAdjustingError, err
         end
       end
 
