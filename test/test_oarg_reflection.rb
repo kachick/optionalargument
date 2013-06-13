@@ -115,4 +115,113 @@ class Test_OptionalArgument_Reflection < Test::Unit::TestCase
     assert_equal(false, OptArg.deprecated?(:undefined))
   end
 
+  def test_has_default?
+    assert_equal(false, OptArg.has_default?(:a))
+    assert_equal(false, OptArg.has_default?("a"))
+    assert_equal(false, OptArg.has_default?(:b))
+    assert_equal(false, OptArg.has_default?(:c))
+    assert_equal(false, OptArg.has_default?(:d))
+    assert_equal(false, OptArg.has_default?(:e))
+    assert_equal(false, OptArg.has_default?(:z))
+    assert_equal(false, OptArg.has_default?(:b1))
+    assert_equal(false, OptArg.has_default?(:c1))
+    assert_equal(false, OptArg.has_default?(:c2))
+    assert_equal(false, OptArg.has_default?(:d1))
+    assert_equal(false, OptArg.has_default?(:e1))
+    assert_equal(false, OptArg.has_default?(:e2))
+    assert_equal(false, OptArg.has_default?(:undefined))
+  end
+
+  def test_has_condition?
+    assert_equal(false, OptArg.has_condition?(:a))
+    assert_equal(false, OptArg.has_condition?("a"))
+    assert_equal(false, OptArg.has_condition?(:b))
+    assert_equal(false, OptArg.has_condition?(:c))
+    assert_equal(false, OptArg.has_condition?(:d))
+    assert_equal(false, OptArg.has_condition?(:e))
+    assert_equal(false, OptArg.has_condition?(:z))
+    assert_equal(false, OptArg.has_condition?(:b1))
+    assert_equal(false, OptArg.has_condition?(:c1))
+    assert_equal(false, OptArg.has_condition?(:c2))
+    assert_equal(false, OptArg.has_condition?(:d1))
+    assert_equal(false, OptArg.has_condition?(:e1))
+    assert_equal(false, OptArg.has_condition?(:e2))
+    assert_equal(false, OptArg.has_condition?(:undefined))
+  end
+
+  def test_has_adjuster?
+    assert_equal(false, OptArg.has_adjuster?(:a))
+    assert_equal(false, OptArg.has_adjuster?("a"))
+    assert_equal(false, OptArg.has_adjuster?(:b))
+    assert_equal(false, OptArg.has_adjuster?(:c))
+    assert_equal(false, OptArg.has_adjuster?(:d))
+    assert_equal(false, OptArg.has_adjuster?(:e))
+    assert_equal(false, OptArg.has_adjuster?(:z))
+    assert_equal(false, OptArg.has_adjuster?(:b1))
+    assert_equal(false, OptArg.has_adjuster?(:c1))
+    assert_equal(false, OptArg.has_adjuster?(:c2))
+    assert_equal(false, OptArg.has_adjuster?(:d1))
+    assert_equal(false, OptArg.has_adjuster?(:e1))
+    assert_equal(false, OptArg.has_adjuster?(:e2))
+    assert_equal(false, OptArg.has_adjuster?(:undefined))
+  end
+
+end
+
+
+
+class Test_OptionalArgument_ExtendedReflection < Test::Unit::TestCase
+
+  OptArg = OptionalArgument.define {
+    opt :a
+    opt :b, aliases: [:b1], deprecateds: [:b2], default: 'default'
+    opt :c, aliases: [:c1], deprecateds: [:c2], condition: String
+    opt :d, aliases: [:d1], deprecateds: [:d2], adjuster: ->v{v.to_str}
+  }
+
+  def test_has_default?
+    assert_equal(false, OptArg.has_default?(:a))
+    assert_equal(true, OptArg.has_default?(:b))
+    assert_equal(true, OptArg.has_default?('b'))
+    assert_equal(true, OptArg.has_default?(:b1))
+    assert_equal(true, OptArg.has_default?(:b2))
+    assert_equal(false, OptArg.has_default?(:c))
+    assert_equal(false, OptArg.has_default?(:c1))
+    assert_equal(false, OptArg.has_default?(:c2))
+    assert_equal(false, OptArg.has_default?(:d))
+    assert_equal(false, OptArg.has_default?(:d1))
+    assert_equal(false, OptArg.has_default?(:d2))
+    assert_equal(false, OptArg.has_default?(:undefined))
+  end
+
+  def test_has_condition?
+    assert_equal(false, OptArg.has_condition?(:a))
+    assert_equal(false, OptArg.has_condition?(:b))
+    assert_equal(false, OptArg.has_condition?('b'))
+    assert_equal(false, OptArg.has_condition?(:b1))
+    assert_equal(false, OptArg.has_condition?(:b2))
+    assert_equal(true, OptArg.has_condition?(:c))
+    assert_equal(true, OptArg.has_condition?(:c1))
+    assert_equal(true, OptArg.has_condition?(:c2))
+    assert_equal(false, OptArg.has_condition?(:d))
+    assert_equal(false, OptArg.has_condition?(:d1))
+    assert_equal(false, OptArg.has_condition?(:d2))
+    assert_equal(false, OptArg.has_condition?(:undefined))
+  end
+
+  def test_has_adjuster?
+    assert_equal(false, OptArg.has_adjuster?(:a))
+    assert_equal(false, OptArg.has_adjuster?(:b))
+    assert_equal(false, OptArg.has_adjuster?('b'))
+    assert_equal(false, OptArg.has_adjuster?(:b1))
+    assert_equal(false, OptArg.has_adjuster?(:b2))
+    assert_equal(false, OptArg.has_adjuster?(:c))
+    assert_equal(false, OptArg.has_adjuster?(:c1))
+    assert_equal(false, OptArg.has_adjuster?(:c2))
+    assert_equal(true, OptArg.has_adjuster?(:d))
+    assert_equal(true, OptArg.has_adjuster?(:d1))
+    assert_equal(true, OptArg.has_adjuster?(:d2))
+    assert_equal(false, OptArg.has_adjuster?(:undefined))
+  end
+
 end

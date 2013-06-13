@@ -8,6 +8,7 @@ module OptionalArgument; class Store
   extend Validation::Condition
   extend Validation::Adjustment
 
+  # Store's singleton class should behave as builder & parser
   class << self
 
     private :new
@@ -27,7 +28,7 @@ module OptionalArgument; class Store
     # @option options [Boolean] :defined_only
     # @option options [Exception] :exception
     # @param parsing_options [Hash]
-    # @return [Store]
+    # @return [Store] instance of a Store's subclass
     def parse(options, parsing_options={})
       parsing_options = DEFAULT_PARSE_OPTIONS.merge parsing_options
       KeyValidatable.validate_keys parsing_options,
@@ -106,6 +107,21 @@ module OptionalArgument; class Store
       @deprecateds.include? name.to_sym
     end
 
+    # @param name [Symbol, String, #to_sym]
+    def has_default?(name)
+      member?(name) && @default_values.has_key?(autonym_for_name(name))
+    end
+
+    # @param name [Symbol, String, #to_sym]
+    def has_condition?(name)
+      member?(name) && @conditions.has_key?(autonym_for_name(name))
+    end
+
+    # @param name [Symbol, String, #to_sym]
+    def has_adjuster?(name)
+      member?(name) && @adjusters.has_key?(autonym_for_name(name))
+    end
+
     # for debug
     # @return [Hash] - autonym/alias/deprecated => autonym, ...
     def names_with_autonym
@@ -153,8 +169,7 @@ module OptionalArgument; class Store
       must:         false,
       aliases:      [].freeze,
       deprecateds:  [].freeze,
-      requirements: [].freeze,
-      condition:    BasicObject
+      requirements: [].freeze
     }.freeze
     
     if respond_to? :private_constant
@@ -176,14 +191,16 @@ module OptionalArgument; class Store
       options = DEFAULT_ADD_OPT_OPTIONS.merge options
       KeyValidatable.validate_keys(
         options,
-        must: [:must, :aliases, :deprecateds, :requirements, :condition],
-        let:  [:default, :adjuster]
+        must: [:must, :aliases, :deprecateds, :requirements],
+        let:  [:default, :condition, :adjuster]
       )
       
-      _set_condition autonym, options.fetch(:condition)
+      if options.has_key? :condition
+        _add_condition autonym, options.fetch(:condition)
+      end
       
       if options.has_key? :adjuster
-        _set_adjuster autonym, options.fetch(:adjuster)
+        _add_adjuster autonym, options.fetch(:adjuster)
       end
       
       if options.fetch :must
@@ -191,34 +208,21 @@ module OptionalArgument; class Store
           raise KeyConflictError, '"must" conflic with "default"'
         end
         
-        @must_autonyms << autonym
+        _add_must(autonym)
       end
 
       if options.has_key? :default
-        @default_values[autonym] = options.fetch :default
+        _add_default autonym, options.fetch(:default)
       end
 
-      requirements = options.fetch :requirements
-
-      unless requirements.kind_of?(Array) && requirements.all?{|name|name.respond_to?(:to_sym)}
-        raise ArgumentError, "`requirements` requires to be Array<Symbol, String>"
-      end
-
-      @requirements[autonym] = requirements.map(&:to_sym).uniq
+      _add_requirements autonym, options.fetch(:requirements)
 
       deprecateds = options.fetch :deprecateds
 
-      @deprecateds.concat deprecateds
+      _add_deprecated(*deprecateds)
 
       [autonym, *options.fetch(:aliases), *deprecateds].each do |name|
-         name = name.to_sym
-
-        if @names.has_key? name
-          raise NameError, "already defined the name: #{name}"
-        end
-        
-        @names[name] = autonym
-        _def_instance_methods name
+        _add_member autonym, name.to_sym
       end
 
       nil
@@ -249,6 +253,9 @@ module OptionalArgument; class Store
     # @endgroup
 
     # @group Define options - Inner API
+
+    # if `_func autonym [Symbol]` requires a coreced symbol.
+    # Don't pass [String, #to_str].
 
     # @param _name [Symbol]
     # @return [nil]
@@ -282,19 +289,15 @@ module OptionalArgument; class Store
       nil
     end
 
-    # @endgroup
-    
-    # @group Constructor - Inner API
-
     # @param condition [#===]
     def _valid?(condition, value)
       condition === value
     end
 
-    # @param autonym [Symbol] !MUST! already converted native autonym
+    # @param autonym [Symbol]
     # @return [value]
     def _validate_value(autonym, value)
-      if @adjusters.has_key? autonym
+      if has_adjuster? autonym
         adjuster = @adjusters.fetch autonym
         begin
           value = adjuster.call value
@@ -303,20 +306,65 @@ module OptionalArgument; class Store
         end
       end
 
-      condition = @conditions.fetch(autonym)
-      
-      unless _valid? condition, value
-        raise Validation::InvalidWritingError,
-          "#{value.inspect} is deficient for #{condition}"
+      if has_condition? autonym
+        condition = @conditions.fetch(autonym)
+        
+        unless _valid? condition, value
+          raise Validation::InvalidWritingError,
+            "#{value.inspect} is deficient for #{condition}"
+        end
       end
 
       value
     end
-    
+
+    # @param autonym [Symbol]
+    # @return [autonym]
+    def _add_must(autonym)
+      @must_autonyms << autonym
+    end
+
+    # @param names [Array<Symbol>]
+    # @return [nil]
+    def _add_deprecated(*names)
+      @deprecateds.concat names
+      nil
+    end
+
+    # @param autonym [Symbol]
+    # @param name [Symbol]
+    # @return [name]
+    def _add_member(autonym, name)
+      if member? name
+        raise NameError, "already defined the name: #{name}"
+      end
+      
+      @names[name] = autonym
+      _def_instance_methods name
+    end
+
+    # @param autonym [Symbol]
+    # @param requirements [Array<Symbol, String, #to_sym>]
+    # @return [nil]
+    def _add_requirements(autonym, requirements)
+      unless requirements.kind_of?(Array) && requirements.all?{|name|name.respond_to?(:to_sym)}
+        raise ArgumentError, "`requirements` requires to be Array<Symbol, String>"
+      end
+
+      @requirements[autonym] = requirements.map(&:to_sym).uniq
+      nil
+    end
+
+    # @param autonym [Symbol]
+    # @return [value]
+    def _add_default(autonym, value)
+      @default_values[autonym] = value
+    end
+
     # @param autonym [Symbol]
     # @param condition [#===]
     # @return [condition]
-    def _set_condition(autonym, condition)
+    def _add_condition(autonym, condition)
       unless condition.respond_to? :===
         raise TypeError, "#{condition.inspect} is wrong object for condition"
       end
@@ -327,7 +375,7 @@ module OptionalArgument; class Store
     # @param autonym [Symbol]
     # @param adjuster [#call]
     # @return [adjuster]
-    def _set_adjuster(autonym, adjuster)
+    def _add_adjuster(autonym, adjuster)
       unless adjuster.respond_to? :call
         raise TypeError, "#{adjuster.inspect} is wrong object for adjuster"
       end
@@ -353,7 +401,7 @@ module OptionalArgument; class Store
       options.each_pair do |key, value|
         key = key.to_sym
         
-        if @names.has_key? key
+        if member? key
           autonym = autonym_for_name key
           raise KeyConflictError, key if hash.has_key? autonym
 
@@ -431,9 +479,9 @@ module OptionalArgument; class Store
     # @return [Hash]  autonym => default_value
     def _default_pairs_for(*autonyms)
       {}.tap {|h|
-        autonyms.each do |auto|
-          if @default_values.has_key? auto
-            h[auto] = _validate_value auto, @default_values.fetch(auto)
+        autonyms.each do |autonym|
+          if has_default? autonym
+            h[autonym] = _validate_value autonym, @default_values.fetch(autonym)
           end
         end
       }
@@ -443,7 +491,7 @@ module OptionalArgument; class Store
     def _check_requirements
       @requirements.each_pair do |autonym, names|
         names.map!{|name|
-          if @names.has_key? name
+          if member? name
             autonym_for_name name
           else
             raise ArgumentError,
