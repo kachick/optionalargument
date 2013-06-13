@@ -1,4 +1,5 @@
 # coding: us-ascii
+require './lib/optionalargument/version'
 
 Gem::Specification.new do |gem|
   # specific
@@ -9,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'http://kachick.github.com/optionalargument/'
   gem.license       = 'MIT'
   gem.name          = 'optionalargument'
-  gem.version       = '0.0.4.a'
+  gem.version       = OptionalArgument::VERSION.dup
 
   gem.required_ruby_version = '>= 1.9.2'
 
