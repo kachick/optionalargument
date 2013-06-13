@@ -28,7 +28,7 @@ module OptionalArgument; class Store
     # @option options [Exception] :exception
     # @param parsing_options [Hash]
     # @return [Store]
-    def for_options(options, parsing_options={})
+    def parse(options, parsing_options={})
       parsing_options = DEFAULT_PARSE_OPTIONS.merge parsing_options
       KeyValidatable.validate_keys parsing_options,
                                    must: [:defined_only, :exception]
@@ -38,13 +38,10 @@ module OptionalArgument; class Store
           raise MalformedOptionsError, 'options must be key-value pairs'
         end
 
-        base_hash = _base_hash_for(options, parsing_options.fetch(:defined_only)).tap {|h|
-          recieved_autonyms = h.keys.map{|key|autonym_for_name key}
-          _validate_autonym_combinations(*recieved_autonyms)
-          h.update _default_pairs_for(*(autonyms - recieved_autonyms))
-        }
+        autonym_hash = _autonym_hash_for options, parsing_options.fetch(:defined_only)
+        _scan_hash! autonym_hash
 
-        new base_hash
+        new autonym_hash
       rescue MalformedOptionsError, Validation::InvalidError => err
         if replacemet = parsing_options.fetch(:exception)
           raise replacemet.new, err
@@ -54,8 +51,8 @@ module OptionalArgument; class Store
       end
     end
     
-    alias_method :for_pairs, :for_options
-    alias_method :parse, :for_options
+    alias_method :for_options, :parse
+    alias_method :for_pairs, :parse
 
     # @endgroup
 
@@ -305,10 +302,19 @@ module OptionalArgument; class Store
       @adjusters[autonym] = adjuster
     end
 
+    # @param autonym_hash [Hash]
+    # @return [autonym_hash]
+    def _scan_hash!(autonym_hash)
+      recieved_autonyms = autonym_hash.keys.map{|key|autonym_for_name key}
+      _validate_autonym_combinations(*recieved_autonyms)
+      autonym_hash.update _default_pairs_for(*(autonyms - recieved_autonyms))
+      autonym_hash
+    end
+
     # @param options [#each_pair]
     # @param defined_only [Boolean]
     # @return [Hash]
-    def _base_hash_for(options, defined_only)
+    def _autonym_hash_for(options, defined_only)
       {}.tap {|h|
         options.each_pair do |key, value|
           key = key.to_sym
@@ -327,9 +333,20 @@ module OptionalArgument; class Store
       }
     end
 
+    # @param recieved_autonyms [Array<Symbol>]
     # @raise [MalformedOptionsError, KeyConflictError] if invalid autonym combinations
     # @return [nil]
     def _validate_autonym_combinations(*recieved_autonyms)
+      _validate_shortage_keys(*recieved_autonyms)
+      _validate_requirements(*recieved_autonyms)
+      _validate_conflicts(*recieved_autonyms)
+      nil
+    end
+
+    # @param recieved_autonyms [Array<Symbol>]
+    # @raise [MalformedOptionsError]
+    # @return [nil]
+    def _validate_shortage_keys(*recieved_autonyms)
       shortage_keys = @must_autonyms - recieved_autonyms
       
       unless shortage_keys.empty?
@@ -337,27 +354,41 @@ module OptionalArgument; class Store
           "shortage option parameter: #{shortage_keys.join(', ')}"
       end
 
+      nil
+    end
+
+    # @param recieved_autonyms [Array<Symbol>]
+    # @raise [MalformedOptionsError]
+    # @return [nil]
+    def _validate_requirements(*recieved_autonyms)
       recieved_autonyms.each do |autonym|
-        shortage_keys_for_requirements = @requirements.fetch(autonym) - recieved_autonyms
-        unless shortage_keys_for_requirements.empty?
+        shortage_keys = @requirements.fetch(autonym) - recieved_autonyms
+        unless shortage_keys.empty?
           raise MalformedOptionsError,
-            "shortage option parameter for #{autonym}: #{shortage_keys_for_requirements.join(', ')}"
+            "shortage option parameter for #{autonym}: #{shortage_keys.join(', ')}"
         end
-      end
-
-      conflict = @conflict_autonym_sets.find{|conflict_autonym_set|
-        (conflict_autonym_set - recieved_autonyms).empty?
-      }
-
-      if conflict
-        raise KeyConflictError,
-          "conflict conbination thrown: #{conflict.join(', ')}"
       end
 
       nil
     end
 
-    # @param autonyms [Symbol]
+    # @param recieved_autonyms [Array<Symbol>]
+    # @raise [KeyConflictError]
+    # @return [nil]
+    def _validate_conflicts(*recieved_autonyms)
+      conflicts = @conflict_autonym_sets.find{|conflict_autonym_set|
+        (conflict_autonym_set - recieved_autonyms).empty?
+      }
+
+      if conflicts
+        raise KeyConflictError,
+          "conflict conbination thrown: #{conflicts.join(', ')}"
+      end
+
+      nil
+    end
+
+    # @param autonyms [Array<Symbol>]
     # @return [Hash]  autonym => default_value
     def _default_pairs_for(*autonyms)
       {}.tap {|h|
