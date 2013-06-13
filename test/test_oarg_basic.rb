@@ -10,6 +10,11 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     opt :c, default: :C
   }
 
+  def test_version
+    assert_match /\A\d+\.\d+\.\d+(\.\d)?(\.[a-z])?\z/, OptionalArgument::VERSION
+    assert_equal true, OptionalArgument::VERSION.frozen?
+  end
+
   def test_to_strings
     oarg = OARG.parse a: 'A'
     assert_instance_of String, oarg.inspect
