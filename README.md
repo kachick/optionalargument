@@ -67,7 +67,7 @@ OptArg = OptionalArgument.define {
 OptArg.parse(a: 1, b: 1) #=> Error: conflict conbination thrown: a, b'
 OptArg.parse(c: 1)       #=> Error: `c` requires  `b` and `d`
 OptArg.parse(d2: 1).d3   #=> 1
-OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2` is deprecated, use new API `e`" 
+OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2/e3` is deprecated, use new API `e`" 
 ```
 
 ### Validate and coerce value
@@ -80,7 +80,7 @@ OptArg = OptionalArgument.define {
 }
 
 OptArg.parse x: 5       #=> pass : 5 is sufficient for 3..5
-OptArg.parse x: 6       #=> Error: 6 is deficient for 3..5 
+OptArg.parse x: 6       #=> Error: 6 is deficient for 3..5
 OptArg.parse y: 5       #=> Error: 5 is deficient for Float
 OptArg.parse y: 5.0     #=> pass : 5.0 is sufficient for 3..5 and Float
 OptArg.parse(z: '1').z  #=> 1.0  : casted under adjuster
@@ -108,12 +108,10 @@ OptArg = OptionalArgument.define {
 
 opts = OptArg.parse(
          {known: 1, unknown: 2},
-         strict: false)          #=> pass
-opts.unknown?                    #=> false
-opts.unknown                     #=> nil
+         defined_only: false)    #=> pass
 ```
 
-### Use specific error
+### Switch error
 
 ```ruby
 OptArg = OptionalArgument.define {
