@@ -1,27 +1,28 @@
 # coding: us-ascii
-require './lib/optionalargument/version'
+
+lib_name = 'optionalargument'.freeze
+require "./lib/#{lib_name}/version"
 
 Gem::Specification.new do |gem|
   # specific
 
-  gem.description   = %q{Revenge of the Hash options.
-
-Hash will beat `keyword arguments`!!}
+  gem.description   = %q{Revenge of the Hash options}
 
   gem.summary       = gem.description.dup
-  gem.homepage      = 'http://kachick.github.com/optionalargument/'
+  gem.homepage      = "http://kachick.github.com/#{lib_name}/"
   gem.license       = 'MIT'
-  gem.name          = 'optionalargument'
+  gem.name          = lib_name.dup
   gem.version       = OptionalArgument::VERSION.dup
 
-  gem.required_ruby_version = '>= 1.9.2'
+  gem.required_ruby_version = '>= 1.9.3'
 
   gem.add_runtime_dependency 'keyvalidatable', '~> 0.0.5'
   gem.add_runtime_dependency 'validation', '~> 0.0.6'
 
-  gem.add_development_dependency 'yard', '>= 0.8.6.1', '< 0.9'
+  gem.add_development_dependency 'yard', '>= 0.8.7.6', '< 0.9'
   gem.add_development_dependency 'rake', '>= 10', '< 20'
-  gem.add_development_dependency 'bundler', '>= 1.3.5', '< 2'
+  gem.add_development_dependency 'bundler', '>= 1.10', '< 2'
+  gem.add_development_dependency 'test-unit', '>= 3.1.1', '< 4'
 
   # common
 
