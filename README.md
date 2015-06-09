@@ -3,30 +3,29 @@ optionalargument
 
 [![Build Status](https://secure.travis-ci.org/kachick/optionalargument.png)](http://travis-ci.org/kachick/optionalargument)
 [![Gem Version](https://badge.fury.io/rb/optionalargument.png)](http://badge.fury.io/rb/optionalargument)
+[![Dependency Status](https://gemnasium.com/kachick/optionalargument.svg)](https://gemnasium.com/kachick/optionalargument)
 
 Description
 -----------
 
-Revenge of the Hash options.
-Hash will beat `keyword arguments`!!
+DSL for method-arguments checker
 
 Features
 --------
 
 * Flexible and readable definitions
-* Strict parsing for key combinations
+* Strict parser for key combinations
 * Key compatible for Symbol<->String
 * Validate and coerce values
 * You can use parsed options as Struct
-* Pure Ruby :)
 
 Usage
 -----
 
-Of course, you can mix following features :)  
-Clean up `DEFUALT_OPTIONS.merge(options)` and validations!
+You can mix following features :)  
+Clean up `DEFUALT_OPTIONS.merge(options)` and annoying validations!
 
-### Basic API
+### Parser for arguments
 
 ```ruby
 require 'optionalargument'
@@ -67,7 +66,7 @@ OptArg = OptionalArgument.define {
 OptArg.parse(a: 1, b: 1) #=> Error: conflict conbination thrown: a, b'
 OptArg.parse(c: 1)       #=> Error: `c` requires  `b` and `d`
 OptArg.parse(d2: 1).d3   #=> 1
-OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2` is deprecated, use `e`" 
+OptArg.parse(e2: 1).e3   #=> 1 with warning "`e2` is deprecated, use `e`"
 ```
 
 ### Validate and coerce value
@@ -86,7 +85,7 @@ OptArg.parse y: 5.0     #=> pass : 5.0 is sufficient for 3..5 and Float
 OptArg.parse(z: '1').z  #=> 1.0  : casted under adjuster
 ```
 
-### Default value
+### Handle default values
 
 ```ruby
 OptArg = OptionalArgument.define {
@@ -95,20 +94,6 @@ OptArg = OptionalArgument.define {
 }
 
 OptArg.parse(a: 1).b  #=> 'This is a default value'
-```
-
-### Relax parsing
-
-[Builtin features are designed by relax parsing for unknown options.](http://www.ruby-forum.com/topic/4402711#1064528)
-
-```ruby
-OptArg = OptionalArgument.define {
-  opt :known, must: true
-}
-
-opts = OptArg.parse(
-         {known: 1, unknown: 2},
-         defined_only: false)    #=> pass
 ```
 
 ### Switch error
@@ -122,10 +107,22 @@ OptArg.parse({b: 1}, exception: ArgumentError) #=> ArgumentError
 OptArg.parse({b: 1}, exception: KeyError)      #=> KeyError
 ```
 
+This library helps you the building checkers for arguments. But normally behaves so relax. Because [Builtin features are designed by relax parsing for unknown options](http://www.ruby-forum.com/topic/4402711#1064528).
+
+```ruby
+OptArg = OptionalArgument.define {
+  opt :known, must: true
+}
+
+opts = OptArg.parse(
+         {known: 1, unknown: 2},
+         defined_only: false)    #=> pass
+```
+
 Requirements
 -------------
 
-* Ruby - [1.9.2 or later](http://travis-ci.org/#!/kachick/optionalargument)
+* Ruby - [1.9.3 or later](http://travis-ci.org/#!/kachick/optionalargument)
 
 Install
 -------
