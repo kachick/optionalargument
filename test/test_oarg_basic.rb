@@ -103,6 +103,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     assert_equal [[:a, 'A'], [:b, 'B2'], [:c, :C]], yargs
 
     enum = oarg.each_pair
+    assert_equal 3, enum.size
     assert_instance_of Enumerator, enum
     assert_equal [:a, 'A'], enum.next
     assert_equal [:b, 'B2'], enum.next
