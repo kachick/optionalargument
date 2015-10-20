@@ -31,13 +31,12 @@ Clean up `DEFUALT_OPTIONS.merge(options)` and annoying validations!
 require 'optionalargument'
 
 class Foo
-  FuncOptArg = OptionalArgument.define {
-    opt :a, must: true
-    opt :b
-  }
-
   def func(options={})
-    opts = FuncOptArg.parse options
+    opts = OptionalArgument.parse options do
+      opt :a, must: true
+      opt :b
+    end
+    
     p opts.a
     p opts.b?
     p opts.b

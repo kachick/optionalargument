@@ -15,6 +15,13 @@ module OptionalArgument
         _fix
       }
     end
+    
+    # @see OptionalArgument::Store.parse
+    def parse(opts, parsing_options={}, &block)
+      raise ArgumentError, 'block was not given' unless block_given?
+      
+      define(&block).parse opts, parsing_options
+    end
 
   end
 
