@@ -121,7 +121,7 @@ opts = OptArg.parse(
 Requirements
 -------------
 
-* Ruby - [1.9.3 or later](http://travis-ci.org/#!/kachick/optionalargument)
+* Ruby - [2.1 or later](http://travis-ci.org/#!/kachick/optionalargument)
 
 Install
 -------
