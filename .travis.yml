@@ -7,16 +7,14 @@ branches:
 rvm:
   - 2.2
   - 2.1
-  - 2.0
-  - 1.9.3
   - ruby-head
-  - rbx-2
+  - rbx-2.5.8
   - jruby-head
 
 matrix:
   allow_failures:
     - rvm: ruby-head
-    - rvm: rbx-2
+    - rvm: rbx-2.5.8
     - rvm: jruby-head
 
 before_install:

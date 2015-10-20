@@ -20,9 +20,7 @@ module OptionalArgument; class Store
       exception: nil
     }.freeze
     
-    if respond_to? :private_constant
-      private_constant :DEFAULT_PARSE_OPTIONS
-    end
+    private_constant :DEFAULT_PARSE_OPTIONS
 
     # @param options [Hash, Struct, #each_pair]
     # @option options [Boolean] :defined_only
@@ -172,9 +170,7 @@ module OptionalArgument; class Store
       requirements: [].freeze
     }.freeze
     
-    if respond_to? :private_constant
-      private_constant :DEFAULT_ADD_OPT_OPTIONS
-    end
+    private_constant :DEFAULT_ADD_OPT_OPTIONS
     
     # @param autonym [Symbol, String, #to_sym]
     # @param options [Hash]
