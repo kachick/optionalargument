@@ -133,12 +133,9 @@ gem install optionalargument
 Link
 ----
 
-* [Home](http://kachick.github.com/optionalargument/)
 * [code](https://github.com/kachick/optionalargument)
-* [API](http://kachick.github.com/optionalargument/yard/frames.html)
+* [API](http://www.rubydoc.info/github/kachick/optionalargument)
 * [issues](https://github.com/kachick/optionalargument/issues)
-* [CI](http://travis-ci.org/#!/kachick/optionalargument)
-* [gem](https://rubygems.org/gems/optionalargument)
 
 License
 --------
