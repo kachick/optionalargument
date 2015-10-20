@@ -56,7 +56,7 @@ module OptionalArgument
     # @yieldreturn [self]
     # @return [Enumerator]
     def each_pair(&block)
-      return _to_enum(__method__) unless block_given?
+      return _to_enum(__method__) { @pairs.size } unless block_given?
       
       @pairs.each_pair(&block)
       self
