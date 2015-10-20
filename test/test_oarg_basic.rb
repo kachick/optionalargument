@@ -220,3 +220,42 @@ class Test_OptionalArgument_Aliases < Test::Unit::TestCase
   end
 
 end
+
+class Test_OptionalArgument_ParseWithBlock < Test::Unit::TestCase
+
+  cls = Class.new do
+    def func(opts)
+      OptionalArgument.parse opts, defined_only: false do
+        opt :a
+        opt :b, must: true, condition: String
+      end
+    end
+  end
+  
+  INSTANCE = cls.new
+
+  def test_basic
+    assert_raises OptionalArgument::MalformedOptionsError do
+      INSTANCE.func a: 1
+    end
+    
+    assert_raises Validation::InvalidWritingError do
+      INSTANCE.func b: 1
+    end
+    
+    str = 'string'
+    assert_same str, INSTANCE.func(b: str, c: 1).b
+  end
+
+  def test_cache
+    pend
+    times = 10
+    instances = []
+    times.times do |n|
+      instances << INSTANCE.func(b: n.to_s)
+    end
+    assert_equal times, instances.uniq.length
+    assert_equal 1, instances.map(&:class).uniq.length
+  end
+
+end
