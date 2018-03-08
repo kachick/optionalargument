@@ -11,7 +11,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
   }
 
   def test_version
-    assert_match(/\A\d+\.\d+\.\d+(\.\d)?(\.[a-z])?\z/, OptionalArgument::VERSION)
+    assert_match(/\A\d+\.\d+/, OptionalArgument::VERSION)
     assert_equal true, OptionalArgument::VERSION.frozen?
   end
 
@@ -41,7 +41,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
     store = OptionalArgument.define {
       opt :foo
     }
-    assert_raises RuntimeError do
+    assert_raises do
       store.__send__ :opt, :bar
     end
   end
