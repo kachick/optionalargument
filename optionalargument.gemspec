@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'keyvalidatable'
   gem.add_runtime_dependency 'validation', '~> 0.1'
 
-  gem.add_development_dependency 'yard', '>= 0.8.7.6', '< 0.9'
+  gem.add_development_dependency 'yard', '~> 0.9.16'
   gem.add_development_dependency 'rake', '>= 10', '< 20'
   gem.add_development_dependency 'bundler', '>= 1.10', '< 2'
   gem.add_development_dependency 'test-unit', '>= 3.1.1', '< 4'
