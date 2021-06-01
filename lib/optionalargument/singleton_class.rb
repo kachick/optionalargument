@@ -1,13 +1,12 @@
 # coding: us-ascii
+# frozen_string_literal: true
 
 module OptionalArgument
-
   class << self
-
     # @yieldreturn [Class] subclass of Store
     # @return [void] must block given
     def define(&block)
-      raise ArgumentError, 'block was not given' unless block_given?
+      raise ArgumentError, 'block was not given' unless block
 
       Class.new(Store) {
         _init
@@ -15,14 +14,12 @@ module OptionalArgument
         _fix
       }
     end
-    
+
     # @see OptionalArgument::Store.parse
-    def parse(opts, parsing_options={}, &block)
-      raise ArgumentError, 'block was not given' unless block_given?
-      
-      define(&block).parse opts, parsing_options
+    def parse(opts, **kwargs, &block)
+      raise ArgumentError, 'block was not given' unless block
+
+      define(&block).parse(opts, **kwargs)
     end
-
   end
-
 end

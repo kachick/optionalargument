@@ -1,11 +1,12 @@
 # coding: us-ascii
+# frozen_string_literal: true
 
 require_relative 'helper'
 
-class Test_OptionalArgument_README < Test::Unit::TestCase
+class TestOptionalArgumentREADME < Test::Unit::TestCase
 
   OptArg1 = OptionalArgument.define {
-    opt :full_name, must: true, aliases: [:name, :fullname] 
+    opt :full_name, must: true, aliases: [:name, :fullname]
     opt :favorite, default: 'Ruby'
   }
 
@@ -26,16 +27,16 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
     end
 
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg1.parse favorite: true
+      OptArg1.parse({ favorite: true})
     end
 
-    ret = OptArg1.parse name: 'John'
-    
+    ret = OptArg1.parse({ name: 'John'})
+
     assert_instance_of OptArg1, ret
     assert_equal 'John', ret.name
     assert_equal 'Ruby', ret.favorite
 
-    ret = OptArg1.parse favorite: 'Scala', name: nil
+    ret = OptArg1.parse({ favorite: 'Scala', name: nil})
     assert_equal 'Scala', ret.favorite
   end
 
@@ -81,7 +82,7 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
     end
 
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg2.parse a2: true
+      OptArg2.parse({ a2: true})
     end
 
     assert_raises ArgumentError do
@@ -95,15 +96,15 @@ class Test_OptionalArgument_README < Test::Unit::TestCase
     assert_instance_of OptArg2, OptArg2.parse({a2: true}, defined_only: false)
 
     assert_raises OptionalArgument::KeyConflictError do
-      OptArg2.parse a: true, c: true
+      OptArg2.parse({ a: true, c: true})
     end
 
     assert_raises OptionalArgument::KeyConflictError do
-      OptArg2.parse a: true, c: true, b: true
+      OptArg2.parse({ a: true, c: true, b: true})
     end
 
     assert_raises OptionalArgument::KeyConflictError do
-      OptArg2.parse a: true, c2: true, b: true
+      OptArg2.parse({ a: true, c2: true, b: true})
     end
 
     assert_raises OptionalArgument::KeyConflictError do

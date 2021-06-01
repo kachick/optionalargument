@@ -1,4 +1,5 @@
 # coding: us-ascii
+# frozen_string_literal: true
 
 $VERBOSE = true
 
@@ -8,6 +9,4 @@ OptArg = OptionalArgument.define {
   opt :known, must: true
 }
 
-opts = OptArg.parse(
-         {known: 1, unknown: 2},
-         defined_only: false)      #=> pass
+OptArg.parse({known: 1, unknown: 2}, defined_only: false) #=> pass
