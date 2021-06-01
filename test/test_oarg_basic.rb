@@ -1,8 +1,9 @@
 # coding: us-ascii
+# frozen_string_literal: true
 
 require_relative 'helper'
 
-class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
+class TestOptionalArgumentBasicAPI < Test::Unit::TestCase
 
   OARG = OptionalArgument.define {
     opt :a
@@ -16,7 +17,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
   end
 
   def test_to_strings
-    oarg = OARG.parse a: 'A'
+    oarg = OARG.parse({ a: 'A'})
     assert_instance_of String, oarg.inspect
     assert_equal oarg.inspect, oarg.to_s
     assert_not_same oarg.inspect, oarg.to_s
@@ -49,52 +50,53 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
   def test_reject_noassigned
     assert_raises RuntimeError do
       OptionalArgument.define {
+        nil
       }
     end
   end
 
   def test_compare_eql?
-    oarg = OARG.parse a: 1
-    
+    oarg = OARG.parse({ a: 1})
+
     assert_raises NoMethodError do
       oarg.eql? BasicObject.new
     end
 
     assert_same false, oarg.eql?(Object.new)
-    assert_same true, oarg.eql?(OARG.parse a: 1)
-    assert_same false, oarg.eql?(OARG.parse a: 1.0)
+    assert_same true, oarg.eql?(OARG.parse({a: 1}))
+    assert_same false, oarg.eql?(OARG.parse({a: 1.0}))
     assert_same false, oarg.eql?(OARG.parse({}))
-    assert_same false, oarg.eql?(OARG.parse a: 1, b: nil)
+    assert_same false, oarg.eql?(OARG.parse({a: 1, b: nil}))
 
-    assert_same :MATCH, {oarg => :MATCH}.fetch(OARG.parse a: 1)
+    assert_same :MATCH, {oarg => :MATCH}.fetch(OARG.parse({a: 1}))
   end
 
   def test_compare
-    oarg = OARG.parse a: 1
-    
+    oarg = OARG.parse({ a: 1})
+
     assert_raises NoMethodError do
       oarg === BasicObject.new
     end
 
     assert_same false, oarg == Object.new
-    assert_same true, oarg == OARG.parse(a: 1)
-    assert_same true, oarg == OARG.parse(a: 1.0)
+    assert_same true, oarg == OARG.parse({a: 1})
+    assert_same true, oarg == OARG.parse({a: 1.0})
     assert_same false, oarg == OARG.parse({})
-    assert_same false, oarg == OARG.parse(a: 1, b: nil)
+    assert_same false, oarg == OARG.parse({a: 1, b: nil})
   end
 
   def test_to_h
-    oarg = OARG.parse a: 'A'
+    oarg = OARG.parse({ a: 'A'})
     assert_equal({a: 'A', c: :C}, oarg.to_h)
     assert_not_same oarg.to_h, oarg.to_h
   end
 
   def test_each_pair
-    oarg = OARG.parse a: 'A', b2: 'B2'
+    oarg = OARG.parse({ a: 'A', b2: 'B2'})
 
-    yret = oarg.each_pair {}
+    yret = oarg.each_pair { nil }
     assert_same oarg, yret
-    
+
     yargs = []
     oarg.each_pair do |k, v|
       yargs << [k, v]
@@ -116,7 +118,7 @@ class Test_OptionalArgument_BasicAPI < Test::Unit::TestCase
 end
 
 
-class Test_OptionalArgument_Requirements < Test::Unit::TestCase
+class TestOptionalArgumentRequirements < Test::Unit::TestCase
 
   OptArg = OptionalArgument.define {
     opt :a
@@ -127,32 +129,32 @@ class Test_OptionalArgument_Requirements < Test::Unit::TestCase
 
   def test_parse_error
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg.parse b:1
+      OptArg.parse({ b:1})
     end
 
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg.parse a: 1, b: 1
+      OptArg.parse({ a: 1, b: 1})
     end
 
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg.parse a: 1, b: 1, c: 1
+      OptArg.parse({ a: 1, b: 1, c: 1})
     end
 
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg.parse b:1 , c: 1
+      OptArg.parse({ b:1 , c: 1})
     end
 
     assert_raises OptionalArgument::MalformedOptionsError do
-      OptArg.parse b:1 , d: 1
+      OptArg.parse({ b:1 , d: 1})
     end
   end
 
   def test_parse_passing
-    assert_instance_of OptArg, OptArg.parse(a: 1)
-    assert_instance_of OptArg, OptArg.parse(c: 1)
-    assert_instance_of OptArg, OptArg.parse(d: 1)
-    assert_instance_of OptArg, OptArg.parse(a: 1, d: 1)
-    assert_instance_of OptArg, OptArg.parse(a: 1, b: 1 ,d: 1)
+    assert_instance_of OptArg, OptArg.parse({a: 1})
+    assert_instance_of OptArg, OptArg.parse({c: 1})
+    assert_instance_of OptArg, OptArg.parse({d: 1})
+    assert_instance_of OptArg, OptArg.parse({a: 1, d: 1})
+    assert_instance_of OptArg, OptArg.parse({a: 1, b: 1 ,d: 1})
   end
 
   def test_defining_error
@@ -178,7 +180,7 @@ class Test_OptionalArgument_Requirements < Test::Unit::TestCase
 end
 
 
-class Test_OptionalArgument_Aliases < Test::Unit::TestCase
+class TestOptionalArgumentAliases < Test::Unit::TestCase
 
   ORIGIN = ':)'.freeze
 
@@ -222,30 +224,30 @@ class Test_OptionalArgument_Aliases < Test::Unit::TestCase
 
 end
 
-class Test_OptionalArgument_ParseWithBlock < Test::Unit::TestCase
+class TestOptionalArgumentParseWithBlock < Test::Unit::TestCase
 
   cls = Class.new do
     def func(opts)
-      OptionalArgument.parse opts, defined_only: false do
+      OptionalArgument.parse(opts, defined_only: false) do
         opt :a
         opt :b, must: true, condition: String
       end
     end
   end
-  
+
   INSTANCE = cls.new
 
   def test_basic
     assert_raises OptionalArgument::MalformedOptionsError do
-      INSTANCE.func a: 1
+      INSTANCE.func({ a: 1})
     end
-    
+
     assert_raises Validation::InvalidWritingError do
-      INSTANCE.func b: 1
+      INSTANCE.func({ b: 1})
     end
-    
+
     str = 'string'
-    assert_same str, INSTANCE.func(b: str, c: 1).b
+    assert_same str, INSTANCE.func({b: str, c: 1}).b
   end
 
   def test_cache
@@ -253,7 +255,7 @@ class Test_OptionalArgument_ParseWithBlock < Test::Unit::TestCase
     times = 10
     instances = []
     times.times do |n|
-      instances << INSTANCE.func(b: n.to_s)
+      instances << INSTANCE.func({b: n.to_s})
     end
     assert_equal times, instances.uniq.length
     assert_equal 1, instances.map(&:class).uniq.length

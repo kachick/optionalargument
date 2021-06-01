@@ -1,35 +1,47 @@
 # coding: us-ascii
+# frozen_string_literal: true
 
-lib_name = 'optionalargument'.freeze
-require "./lib/#{lib_name}/version"
+lib_name = 'optionalargument'
+repository_url = "https://github.com/kachick/#{lib_name}"
+
+require_relative "./lib/#{lib_name}/version"
 
 Gem::Specification.new do |gem|
-  # specific
-
-  gem.description   = %q{Revenge of the Hash options}
-
-  gem.summary       = gem.description.dup
-  gem.homepage      = "http://kachick.github.com/#{lib_name}/"
+  gem.summary       = %q{Building method arguments checker with DSL}
+  gem.description   = <<-'DESCRIPTION'
+    Building method arguments checker with DSL
+  DESCRIPTION
+  gem.homepage      = repository_url
   gem.license       = 'MIT'
-  gem.name          = lib_name.dup
-  gem.version       = OptionalArgument::VERSION.dup
+  gem.name          = lib_name
+  gem.version       = OptionalArgument::VERSION
 
-  gem.required_ruby_version = '>= 2.1'
+  gem.metadata = {
+    'documentation_uri' => 'https://kachick.github.io/optionalargument/',
+    'homepage_uri'      => repository_url,
+    'source_code_uri'   => repository_url,
+    'bug_tracker_uri'   => "#{repository_url}/issues"
+  }
 
-  gem.add_runtime_dependency 'keyvalidatable'
-  gem.add_runtime_dependency 'validation', '~> 0.1'
+  gem.required_ruby_version = Gem::Requirement.new('>= 2.6.0')
 
-  gem.add_development_dependency 'yard', '~> 0.9.16'
-  gem.add_development_dependency 'rake', '>= 10', '< 20'
-  gem.add_development_dependency 'bundler', '>= 1.10', '< 2'
-  gem.add_development_dependency 'test-unit', '>= 3.1.1', '< 4'
+  gem.add_runtime_dependency 'validation', '>= 0.2.1', '< 0.3.0'
 
   # common
 
   gem.authors       = ['Kenichi Kamiya']
   gem.email         = ['kachick1+ruby@gmail.com']
-  gem.files         = `git ls-files`.split($\)
-  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
+  git_managed_files = `git ls-files`.lines.map(&:chomp)
+  might_be_parsing_by_tool_as_dependabot = git_managed_files.empty?
+  base_files = Dir['README*', '*LICENSE*',  'lib/**/*', 'sig/**/*'].uniq
+  files = might_be_parsing_by_tool_as_dependabot ? base_files : (base_files & git_managed_files)
+
+  unless might_be_parsing_by_tool_as_dependabot
+    if files.grep(%r!\A(?:lib|sig)/!).size < 5
+      raise "obvious mistaken in packaging files, looks shortage: #{files.inspect}"
+    end
+  end
+
+  gem.files         = files
   gem.require_paths = ['lib']
 end

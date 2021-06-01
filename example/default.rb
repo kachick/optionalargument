@@ -1,4 +1,5 @@
 # coding: us-ascii
+# frozen_string_literal: true
 
 $VERBOSE = true
 
@@ -9,4 +10,4 @@ OptArg = OptionalArgument.define {
   opt :b, default: 'This is a default value'
 }
 
-p OptArg.parse(a: 1).b  #=> 'This is a default value'
+p OptArg.parse({a: 1}).b  #=> 'This is a default value'
