@@ -1,4 +1,4 @@
-name: Signature - rbs & YARD
+name: Signature - YARD
 on:
   push:
     branches:
