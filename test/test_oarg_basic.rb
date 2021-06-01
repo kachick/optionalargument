@@ -242,7 +242,7 @@ class TestOptionalArgumentParseWithBlock < Test::Unit::TestCase
       INSTANCE.func({ a: 1})
     end
 
-    assert_raises Validation::InvalidWritingError do
+    assert_raises OptionalArgument::InvalidWritingError do
       INSTANCE.func({ b: 1})
     end
 
