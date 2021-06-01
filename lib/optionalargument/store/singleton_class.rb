@@ -1,12 +1,15 @@
 # coding: us-ascii
 # frozen_string_literal: true
 
-require 'validation'
+require 'eqq'
 
 module OptionalArgument
+  class Error < StandardError; end
+  class InvalidAdjustingError < Error; end
+  class InvalidWritingError < Error; end
+
   class Store
-    extend Validation::Condition
-    extend Validation::Adjustment
+    extend Eqq::Buildable
 
     # Store's singleton class should behave as builder & parser
     class << self
@@ -27,7 +30,7 @@ module OptionalArgument
           _scan_hash!(autonym_hash)
 
           new(autonym_hash)
-        rescue MalformedOptionsError, Validation::InvalidError => err
+        rescue MalformedOptionsError, InvalidWritingError => err
           if replacement = exception
             raise replacement.new, err
           else
@@ -253,11 +256,6 @@ module OptionalArgument
         nil
       end
 
-      # @param condition [#===]
-      def _valid?(condition, value)
-        condition === value
-      end
-
       # @param autonym [Symbol]
       # @return [value]
       def _validate_value(autonym, value)
@@ -266,16 +264,15 @@ module OptionalArgument
           begin
             value = adjuster.call(value)
           rescue Exception => err
-            raise Validation::InvalidAdjustingError, err
+            raise InvalidAdjustingError, err
           end
         end
 
         if condition?(autonym)
           condition = @conditions.fetch(autonym)
 
-          unless _valid?(condition, value)
-            raise Validation::InvalidWritingError,
-                  "#{value.inspect} is deficient for #{condition}"
+          unless condition === value
+            raise InvalidWritingError, "#{value.inspect} is deficient for #{condition}"
           end
         end
 

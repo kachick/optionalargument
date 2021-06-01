@@ -27,7 +27,7 @@ class TestOptionalArgumentValidateValues < Test::Unit::TestCase
     assert_same true, oarg.with_with_cond?
     assert_same true, oarg.with_cond?
 
-    assert_raises Validation::InvalidWritingError do
+    assert_raises OptionalArgument::InvalidWritingError do
       OptArg.parse({with_cond: 'FOO'})
     end
 
@@ -35,7 +35,7 @@ class TestOptionalArgumentValidateValues < Test::Unit::TestCase
       OptArg.parse({with_cond: 'FOO'}, exception: ArgumentError)
     end
 
-    assert_raises Validation::InvalidWritingError do
+    assert_raises OptionalArgument::InvalidWritingError do
       OptArg.parse({with_cond: :BAR})
     end
   end
@@ -45,7 +45,7 @@ class TestOptionalArgumentValidateValues < Test::Unit::TestCase
     assert_not_equal 'foo', oarg.fetch_by_with_adj
     assert_same :foo, oarg.fetch_by_with_adj
 
-    assert_raises Validation::InvalidAdjustingError do
+    assert_raises OptionalArgument::InvalidAdjustingError do
       OptArg.parse({with_adj: Object.new})
     end
 
@@ -59,11 +59,11 @@ class TestOptionalArgumentValidateValues < Test::Unit::TestCase
     assert_not_equal 'FOO', oarg.fetch_by_with_cond_adj
     assert_same :FOO, oarg.fetch_by_with_cond_adj
 
-    assert_raises Validation::InvalidAdjustingError do
+    assert_raises OptionalArgument::InvalidAdjustingError do
       OptArg.parse({with_cond_adj: Object.new})
     end
 
-    assert_raises Validation::InvalidWritingError do
+    assert_raises OptionalArgument::InvalidWritingError do
       OptArg.parse({with_cond_adj: 'foo'})
     end
   end
@@ -74,7 +74,7 @@ class TestOptionalArgumentValidateValues < Test::Unit::TestCase
   }
 
   def test_with_cond_default
-    assert_raises Validation::InvalidWritingError do
+    assert_raises OptionalArgument::InvalidWritingError do
       OptArg2.parse({})
     end
 
