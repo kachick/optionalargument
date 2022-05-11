@@ -12,7 +12,7 @@ Require Ruby 2.7 or later
 Add this line to your application/library's `Gemfile` is needed in basic use-case
 
 ```ruby
-gem 'optionalargument', '>= 0.5.1', '< 0.6.0'
+gem 'optionalargument', '~> 0.6.0'
 ```
 
 You can mix following features :)
