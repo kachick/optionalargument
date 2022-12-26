@@ -1,7 +1,7 @@
 # optionalargument
 
 ![Build Status](https://github.com/kachick/optionalargument/actions/workflows/test_behaviors.yml/badge.svg?branch=main)
-[![Gem Version](https://badge.fury.io/rb/optionalargument.png)](http://badge.fury.io/rb/optionalargument)
+[![Gem Version](https://badge.fury.io/rb/optionalargument.svg)](http://badge.fury.io/rb/optionalargument)
 
 Building method arguments checker with DSL
 
