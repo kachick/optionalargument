@@ -47,7 +47,7 @@ class TestOptionalArgumentBasicAPI < Test::Unit::TestCase
     end
   end
 
-  def test_reject_noassigned
+  def test_reject_unassigned
     assert_raises RuntimeError do
       OptionalArgument.define {
         nil
