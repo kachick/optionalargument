@@ -16,7 +16,7 @@ gem 'optionalargument', '~> 0.6.0'
 ```
 
 You can mix following features :)
-Clean up `DEFUALT_OPTIONS.merge(options)` and annoying validations!
+Clean up `DEFAULT_OPTIONS.merge(options)` and annoying validations!
 
 ### Parser for arguments
 
