@@ -1,8 +1,6 @@
 require:
   - rubocop-rake
   - rubocop-performance
-  - rubocop-rubycw
-  - rubocop-md
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -364,7 +362,7 @@ Style/MethodCallWithArgsParentheses:
   AllowParenthesesInChaining: true
   AllowParenthesesInCamelCaseMethod: true
   AllowParenthesesInStringInterpolation: true
-  IgnoredMethods: ['raise', 'puts', 'yield', 'require', 'require_relative', 'load']
+  AllowedMethods: ['raise', 'puts', 'yield', 'require', 'require_relative', 'load']
   Exclude:
     - '*.gemspec'
     - '**.md'
@@ -912,16 +910,3 @@ Lint/ConstantResolution:
 
 Lint/EmptyInPattern:
   Enabled: true
-
-Rubycw/Rubycw:
-  Enabled: true
-  Include:
-    - '**/*.rb'
-    - 'Rakefile'
-    - 'Steepfile'
-    - 'bin/**/*'
-    - 'exe/**/*'
-
-Markdown:
-  WarnInvalid: true
-  Autodetect: true
