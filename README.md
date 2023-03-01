@@ -7,7 +7,7 @@ Building method arguments checker with DSL
 
 ## Usage
 
-Require Ruby 2.7 or later
+Require Ruby 3.1 or later
 
 Add this line to your application/library's `Gemfile` is needed in basic use-case
 
