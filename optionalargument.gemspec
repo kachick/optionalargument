@@ -17,7 +17,6 @@ Gem::Specification.new do |gem|
   gem.version       = OptionalArgument::VERSION
 
   gem.metadata = {
-    'documentation_uri'     => 'https://kachick.github.io/optionalargument/',
     'homepage_uri'          => repository_url,
     'source_code_uri'       => repository_url,
     'bug_tracker_uri'       => "#{repository_url}/issues",
